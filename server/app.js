@@ -35,6 +35,19 @@ export function createApp() {
     return res.json({ leadId: lead.id, magicLink, isNew });
   });
 
+  app.get('/api/me', async (req, res) => {
+    const sess = verifySession(req.cookies?.[COOKIE]);
+    if (!sess) return res.status(401).json({ error: 'sem sessão' });
+    const lead = await getLeadById(sess.eventId, sess.leadId);
+    if (!lead || lead.revoked) return res.status(401).json({ error: 'sem sessão' });
+    return res.json({ leadId: lead.id, name: lead.name, eventId: lead.eventId });
+  });
+
+  app.post('/api/auth/logout', (req, res) => {
+    res.clearCookie(COOKIE, { path: '/' });
+    return res.json({ ok: true });
+  });
+
   app.get('/entrar/:token', async (req, res) => {
     const lead = await getLeadByToken(req.params.token);
     if (!lead || lead.revoked) return res.redirect(302, '/link-invalido');
