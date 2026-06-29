@@ -35,5 +35,20 @@ export function createApp() {
     return res.json({ leadId: lead.id, magicLink, isNew });
   });
 
+  app.get('/entrar/:token', async (req, res) => {
+    const lead = await getLeadByToken(req.params.token);
+    if (!lead || lead.revoked) return res.redirect(302, '/link-invalido');
+    const event = await getEvent(lead.eventId);
+    await touchLastSeen(lead.eventId, lead.id);
+    res.cookie(COOKIE, signSession({ leadId: lead.id, eventId: lead.eventId }), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: COOKIE_MAX_AGE,
+      path: '/'
+    });
+    return res.redirect(302, `/e/${event?.slug || lead.eventId}`);
+  });
+
   return app;
 }
