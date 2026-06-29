@@ -11,8 +11,10 @@ export function signSession(payload) {
 }
 
 export function verifySession(value) {
-  if (!value || typeof value !== 'string' || !value.includes('.')) return null;
-  const [body, mac] = value.split('.');
+  if (!value || typeof value !== 'string') return null;
+  const parts = value.split('.');
+  if (parts.length !== 2) return null;
+  const [body, mac] = parts;
   const expected = crypto.createHmac('sha256', secret()).update(body).digest('base64url');
   const a = Buffer.from(mac);
   const b = Buffer.from(expected);

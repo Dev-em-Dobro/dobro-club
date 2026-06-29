@@ -41,4 +41,13 @@ describe('store', () => {
     const arr = await readJson('list.json', []);
     expect(arr.sort()).toEqual([1, 2, 3, 4, 5]);
   });
+
+  it('a failing locked fn does not block subsequent calls', async () => {
+    await withLock('k', () => Promise.reject(new Error('boom'))).catch(() => {});
+    const result = await withLock('k', async () => {
+      await writeJson('k.json', 42);
+      return readJson('k.json');
+    });
+    expect(result).toBe(42);
+  });
 });
