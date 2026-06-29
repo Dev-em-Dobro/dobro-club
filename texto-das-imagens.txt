@@ -1,0 +1,163 @@
+19:08Claude respondeu: A imagem mostra uma página de apresentação de um Sistema de indicações (programa de referral).A imagem mostra uma página de apresentação de um Sistema de indicações (programa de referral). Conteúdo:
+Título: Sistema de indicações
+
+Subtítulo: Potencialize sua captação através de indicações orgânicas diminuindo diretamente seu custo por lead
+Recursos (com check verde):
+
+Premiações por ranking
+Ingresso personalizado por inscrito
+Métricas em tempo real
+
+Depoimento: "Conseguimos obter um custo por lead 60% menor via indicação quando comparado ao tráfego pago" — Filippe Holzer
+Telas de celular (mockups):
+Tela 1 — "Indique e ganhe": compartilhe seu link de convite personalizado e some pontos para concorrer a prêmios. Botões "Copiar convite" e "Enviar convite". Mostra "Suas indicações: 231 indicações". Abaixo, um ingresso personalizado: Nº #100161, "DESAFIO: SUA PRIMEIRA API COM NODE.JS", entrada Iniciantes, Diego Fernandes (CTO @Rocketseat), data 5 de Dezembro, horário 19:00h, com QR code.
+Tela 2 — "Premiações por ranking": prêmios exclusivos por colocação:
+
+1º lugar: Assinatura completa de um ano a todo conteúdo
+2º lugar: Um mês de acesso ilimitado ao catálogo da plataforma paga
+3º lugar: Curso de construção de aplicações React com TailwindCSS
+
+E "Indicou, ganhou!" (prêmios automáticos por número mínimo de indicações):
+
+Masterclass de fundamentos do React e TailwindCSS: +5 (acima de 5 indicações)
+Curso de navegação e consumo de APIs com React: +15 (acima de 15 indicações)
+
+Esse é o slide "Aulas interativas" (já estava no conjunto anterior). Conteúdo:
+Título: Aulas interativas
+
+Subtítulo: Aulas centralizadas + quizzes para engajamento
+Benefícios (check verde):
+
+Maior taxa de comparecimento
+Aumento da retenção
+Suporte para todos os formatos
+Métricas de engajamento
+
+Telas de celular:
+Tela 1 — "Conteúdo": abas Tudo / Gravações / Quizzes / Ao-vivo. Banner vermelho "Ao vivo! Primeiros passos na construção de p...". Card em destaque "Desvendando a IA: Do Básico à Geração de Conteúdo — 01", com Rodrigo Gonçalves. Abaixo, post "Primeiros passos na construção de projetos com React p/ Web" (28 de Jul, 19h) — "Utilizando o Zustand para gerenciamento de estado no React unido ao React Router DOM..." com botão "Assistir".
+Tela 2 — "Conteúdo" / Quiz: Fundamentos do React. "Teste seus conhecimentos nos fundamentos do React com 10 perguntas indispensáveis." Detalhes:
+
+Total de 12 perguntas
+Você não pode repetir o quiz
+Responda até 20 de Abril para participar das premiações do evento
+
+Status: "Quiz completo! Você já respondeu esse quiz" — resultado 6/12 acertos. Botões "Cancelar" e "Tentar novamente".
+
+Esse é o slide "Feed + Comunidade que engaja de verdade" (também já estava no conjunto). Conteúdo:
+Título: Feed + Comunidade que engaja de verdade
+
+Subtítulo: Como manter os participantes engajados
+Benefícios (check verde):
+
+Comunidade ativa com discussões técnicas
+Desafios práticos a cada aula
+Reconhecimento por participação
+Centralização de avisos + materiais
+Certificado
+
+Telas de celular:
+Tela 1 — "Comunidade": campo "Escreva algo...", abas Todas / TypeScript / Fastify / PostgreSQL. Posts:
+
+Diego Fernandes (há 2 horas, Fixado): "Cursor Rules para projetos Node.js com a estrutura da Rocketseat" — "Criei um arquivo com regras para o Cursor focado em fornecer as regras de arquitetura e bibliotecas..." (arquivo .cursorrules). 32 curtidas, 23 comentários.
+Marta Rodrigues (há 8 horas): "Configurando o OpenTelemetry no Node.js utilizando o Grafana e o Prometheus" — "Galera, gravei um vídeo rápido sobre o OTel + Grafana porque percebi que muita gente estava tendo dificuldade na cons..."
+
+Tela 2 — "Mural": posts de Diego Fernandes:
+
+"AQUECIMENTO 1/5" (Fixado): "Vai começar... assiste aí" com vídeo. 32 curtidas, 23 comentários, Compartilhar.
+"AQUECIMENTO 2/5": "Já baixa o e-book que eu preparei pra você aproveitar esse desafio com tudo!" — material "E-book de automações com I.A. / Baixar material". 32 curtidas, 23 comentários, Compartilhar.
+
+Esse é o slide "Métricas que realmente importam". Conteúdo:
+Título: Métricas que realmente importam
+
+Subtítulo: Acompanhe todas as métricas do seu evento em tempo real
+Benefícios (check verde):
+
+Inscritos e indicações
+Comparecimento
+Engajamento
+Lead Scoring
+
+Dashboards / dados mostrados:
+Cards de topo:
+
+Inscritos no evento: 1.178 (+78 nos últimos 7 dias)
+Usuários ativos: 95,84% (817,95% nos últimos 7 dias)
+Pesquisas respondidas: 1.117 (+189 nos últimos 7 dias)
+Pesquisas realizadas: 938
+
+Gráfico "Inscritos por dia" (18 de out. – 09 de nov.): Total de inscritos 1.367, com barras diárias de 19/10/2024 a 09/11/2024 (pico em 04/11/2024).
+Gráfico de barras empilhadas (laranja/verde) por data, com referências em 04/11/2024 e 09/11/2024.
+Gráfico de rosca (donut) — Usuários únicos: 996 / Total 996, segmentado por perfil:
+
+Sou empresário: 254 (25,5%)
+Sou líder em uma empresa (gerente, gestor ou diretor): 215 (21,59%)
+Sou colaborador de uma empresa: 161 (16,16%)
+Estou desempregado: 85 (8,53%)
+
+Esse é o slide "Os 3 pilares do sucesso". Conteúdo:
+Título de seção: Os 3 pilares do sucesso
+
+Título: A fórmula que gerou 915k com CAC negativo
+Três colunas:
+1. Conhecimento profundo da audiência
+
+Pesquisa integrada revelou motivações, medos e objetivos específicos.
+
+80% de resposta vs. 20-40% do mercado.
+2. Métricas em tempo real
+
+Cada ajuste baseado em métricas reais em tempo real, não suposições.
+
+Intensificamos o que funcionava, ajustamos o que não funcionava.
+3. Experiência centralizada
+
+Tudo em um lugar: aulas, materiais, desafios, certificados, etc...
+
+Taxa de conclusão 3x maior que eventos anteriores.
+
+Esse é o slide "Lead Scoring". Conteúdo:
+Título: Lead Scoring
+
+Subtítulo: Engajamento + qualificação automática = mais conversão
+Benefícios (check verde):
+
+Priorize os leads mais quentes automaticamente
+Acelere o follow-up e aumente conversão
+Tenha visão Kanban segmentada por aula
+
+Telas (painel web):
+Tela 1 — "Métricas" → aba Lead Scoring: tabela com colunas Nome / Email / Telefone / Pontuação, listando leads (Bruno, Matheus, Rafael, etc.) com botão "Exportar respostas (CSV)".
+Tela 2 — Lead Scoring em visão Kanban, com colunas segmentadas por progresso/aula: "Sem progresso", "Aula 1", "Aula 2", "Aula 3", cada uma com cards de leads (Ana Pereira, Lucas Dias, Olivia Fernandes, Gabriel Campos, Kelly Almeida, Thiago Freitas, etc.) e suas pontuações. Menu lateral mostra navegação (Painel, Inscritos, Pesquisa, Mural, Comentários, Aulas, Quiz, Indicações, Certificados, Métricas, Email, Configurações).
+
+Esse é o slide "Integrações + Admin". Conteúdo:
+Título: Integrações + Admin
+
+Subtítulo: Painel intuitivo + webhooks de todos os eventos
+Benefícios (check verde):
+
+Webhooks para integrar com CRM, automações e bancos de dados
+Configuração simples e visual, sem depender de dev
+Painel único para gerenciar todo seu evento
+
+Telas:
+Tela 1 — Conversa no WhatsApp da "Equipe Cardi Nigro": "Como concorrer a um iPhone e ganhar vários prêmios?" — "Convide suas amigas para participar das aulas e, automaticamente, você estará concorrendo ao iPhone! E se você for uma das 3 pessoas que mais indicarem, vai ganhar prêmios incríveis: Looks para academia, Kit de cozinha, Dia de princesa." Passo a passo "Como convidar?" (1. Toque no botão para abrir contatos no WhatsApp; 2. Escolha as pessoas; 3. Aperte enviar) e botão "CONVIDE SUA AMIGA".
+Tela 2 — Painel admin "Demonstração Scaled Club" (scaled.club), com menu de Navegação: Painel, Inscritos, Pesquisa, Mural, Comentários, Aulas, Quiz, Indicações, Métricas, Emails, Configurações. Usuária logada: Isabela Castilho.
+Com esse, fechamos os 8 slides do Scaled Club:
+
+Sistema de indicações
+Posicionamento/abertura ("O futuro dos lançamentos...")
+Aulas interativas
+Feed + Comunidade
+Métricas que realmente importam
+Os 3 pilares do sucesso
+Lead Scoring
+Integrações + Admin
+
+Esse é o slide de abertura/posicionamento. Conteúdo:
+Título: O futuro dos lançamentos está em experiências, não só promessas.
+Texto: O Scaled Club é a plataforma criada a partir de um framework que já provou resultados milionários.
+Frase de fechamento: Tudo centralizado. Zero atrito operacional!
+Telas de celular:
+Tela 1 — "Comunidade": campo "Escreva algo...", abas Todas / TypeScript / Fastify / PostgreSQL. Posts de Diego Fernandes ("Cursor Rules para projetos Node.js com a estrutura da Rocketseat" — 32 curtidas, 23 comentários) e Marta Rodrigues ("Configurando o OpenTelemetry no Node.js utilizando o Grafana e o Prometheus").
+Tela 2 — Chat com Diego Fernandes (online): "Olá, Diego! É incrível ter você aqui. Preciso apenas que me responda algumas perguntas para te guiar ao conteúdo mais adequado ao seu nível." Pergunta a faixa de idade (resposta: 18-24) e o nível de experiência com automação e I.A., com opções "Iniciante / Intermediário / Avançado / Ninja".
+Tela 3 — "Conteúdo": abas Tudo / Pendentes / Quizzes. Posts "Primeiros passos na construção de projetos com React p/ Web" (28 de Jul, 19h) e "Quiz: Fundamentos do React".
