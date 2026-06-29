@@ -1,0 +1,25 @@
+import crypto from 'node:crypto';
+
+function secret() {
+  return process.env.DOBRO_SESSION_SECRET || 'dev-secret-change-me';
+}
+
+export function signSession(payload) {
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const mac = crypto.createHmac('sha256', secret()).update(body).digest('base64url');
+  return `${body}.${mac}`;
+}
+
+export function verifySession(value) {
+  if (!value || typeof value !== 'string' || !value.includes('.')) return null;
+  const [body, mac] = value.split('.');
+  const expected = crypto.createHmac('sha256', secret()).update(body).digest('base64url');
+  const a = Buffer.from(mac);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  try {
+    return JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
+  } catch {
+    return null;
+  }
+}
