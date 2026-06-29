@@ -8,6 +8,7 @@ import {
 import { buildMagicLink } from './auth/token.js';
 import { signSession, verifySession } from './auth/session.js';
 import { fireInscriptionWebhook } from './webhook.js';
+import { makeLimiter } from './ratelimit.js';
 
 export const COOKIE = 'dc_session';
 const COOKIE_MAX_AGE = 180 * 24 * 60 * 60 * 1000;
@@ -16,6 +17,8 @@ export function createApp() {
   const app = express();
   app.use(express.json());
   app.use(cookieParser());
+  app.use('/api/events/:eventId/leads', makeLimiter({ windowMs: 60000, max: 60 }));
+  app.use('/entrar', makeLimiter({ windowMs: 60000, max: 30 }));
 
   app.post('/api/events/:eventId/leads', async (req, res) => {
     if (!/^[a-zA-Z0-9_-]+$/.test(req.params.eventId)) {
