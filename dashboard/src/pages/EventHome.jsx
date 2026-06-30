@@ -13,7 +13,6 @@ const NAV = [
 export default function EventHome() {
   const { loading, lead } = useAuth();
   if (loading) return <main className="loading">Entrando…</main>;
-  if (!lead) return <Navigate to="/link-invalido" replace />;
 
   return (
     <div className="event-shell">
@@ -22,7 +21,7 @@ export default function EventHome() {
           <img className="sprite" src="/sprites/happy-mage.png" alt="" />
         </div>
         <div className="hud-text">
-          <p className="hud-hello">Olá, <b>{lead.name || 'aventureiro(a)'}</b></p>
+          <p className="hud-hello">Olá, <b>{lead?.name || 'aventureiro(a)'}</b></p>
           <p className="hud-sub">Bem-vindo(a) à sua jornada <span className="twinkle">⟡</span></p>
         </div>
       </header>
