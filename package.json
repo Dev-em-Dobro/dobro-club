@@ -8,6 +8,8 @@
     "dev:web": "vite",
     "build": "vite build",
     "start": "npm run build && node server.js",
+    "seed": "node scripts/seed.js",
+    "link": "node scripts/magic-link.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
