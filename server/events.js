@@ -1,12 +1,18 @@
 import crypto from 'node:crypto';
-import { readJson } from './data/store.js';
+import { query } from './db.js';
 
 export function hashApiKey(key) {
   return crypto.createHash('sha256').update(String(key)).digest('hex');
 }
 
 export async function getEvent(eventId) {
-  return readJson(`events/${eventId}.json`);
+  const { rows } = await query(
+    `SELECT id, slug, name, status,
+            api_key_hash AS "apiKeyHash", webhook_url AS "webhookUrl"
+     FROM events WHERE id = $1`,
+    [eventId]
+  );
+  return rows[0] || null;
 }
 
 export function verifyApiKey(event, key) {

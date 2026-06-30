@@ -8,6 +8,7 @@ import {
 import { buildMagicLink } from './auth/token.js';
 import { signSession, verifySession } from './auth/session.js';
 import { fireInscriptionWebhook } from './webhook.js';
+import { sendMagicLinkEmail } from './email.js';
 import { makeLimiter } from './ratelimit.js';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -40,6 +41,9 @@ export function createApp() {
     const { lead, isNew } = await createOrGetLead(event.id, value);
     const magicLink = buildMagicLink(lead.token);
     if (isNew) {
+      sendMagicLinkEmail({ to: lead.email, name: lead.name, eventName: event.name, magicLink })
+        .then((r) => { if (!r.sent) console.warn('magic-link email not sent:', r.reason); })
+        .catch((e) => console.error('magic-link email error:', e));
       fireInscriptionWebhook(event, lead, magicLink)
         .then((r) => { if (!r.sent) console.warn('inscription webhook not sent:', r.reason); })
         .catch((e) => console.error('inscription webhook error:', e));

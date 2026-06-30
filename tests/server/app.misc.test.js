@@ -1,20 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
-import os from 'node:os';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import { createApp } from '../../server/app.js';
+import { useTestDb } from '../helpers/db.js';
 
-let tmp;
 let app;
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'dobro-'));
-  process.env.DOBRO_DATA_DIR = tmp;
+  await useTestDb();
   app = createApp();
-});
-afterEach(async () => {
-  await fs.rm(tmp, { recursive: true, force: true });
-  delete process.env.DOBRO_DATA_DIR;
 });
 
 describe('app misc', () => {
