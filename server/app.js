@@ -15,6 +15,9 @@ const COOKIE_MAX_AGE = 180 * 24 * 60 * 60 * 1000;
 
 export function createApp() {
   const app = express();
+  // Trust N proxy hops so req.ip (used for rate limiting) reflects the real client.
+  // 0 = no proxy (safe default); set TRUST_PROXY_HOPS at deploy when behind a proxy.
+  app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS) || 0);
   app.use(express.json());
   app.use(cookieParser());
   app.use('/api/events/:eventId/leads', makeLimiter({ windowMs: 60000, max: 60 }));
@@ -47,7 +50,12 @@ export function createApp() {
   });
 
   app.post('/api/auth/logout', (req, res) => {
-    res.clearCookie(COOKIE, { path: '/' });
+    res.clearCookie(COOKIE, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/'
+    });
     return res.json({ ok: true });
   });
 
@@ -64,6 +72,13 @@ export function createApp() {
       path: '/'
     });
     return res.redirect(302, `/e/${event?.slug || lead.eventId}`);
+  });
+
+  app.use('/api', (req, res) => res.status(404).json({ error: 'não encontrado' }));
+
+  app.use((err, req, res, _next) => {
+    console.error(err);
+    res.status(500).json({ error: 'erro interno' });
   });
 
   return app;
