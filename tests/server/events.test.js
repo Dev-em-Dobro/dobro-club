@@ -1,21 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import os from 'node:os';
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { writeJson } from '../../server/data/store.js';
-import { getEvent, verifyApiKey, hashApiKey } from '../../server/events.js';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { useTestDb, seedEvent } from '../helpers/db.js';
+import { getEvent, verifyApiKey } from '../../server/events.js';
 
-let tmp;
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'dobro-'));
-  process.env.DOBRO_DATA_DIR = tmp;
-  await writeJson('events/evt_1.json', {
-    id: 'evt_1', slug: 'piloto', apiKeyHash: hashApiKey('right-key')
-  });
-});
-afterEach(async () => {
-  await fs.rm(tmp, { recursive: true, force: true });
-  delete process.env.DOBRO_DATA_DIR;
+  await useTestDb();
+  await seedEvent({ id: 'evt_1', slug: 'piloto', apiKey: 'right-key' });
 });
 
 describe('events', () => {

@@ -1,19 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import os from 'node:os';
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { useTestDb } from '../helpers/db.js';
 import {
   createOrGetLead, getLeadByToken, getLeadById, touchLastSeen, setRevoked
 } from '../../server/leads.js';
 
-let tmp;
 beforeEach(async () => {
-  tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'dobro-'));
-  process.env.DOBRO_DATA_DIR = tmp;
-});
-afterEach(async () => {
-  await fs.rm(tmp, { recursive: true, force: true });
-  delete process.env.DOBRO_DATA_DIR;
+  await useTestDb();
 });
 
 describe('leads', () => {
