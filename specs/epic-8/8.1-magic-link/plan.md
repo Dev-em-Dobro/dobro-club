@@ -59,10 +59,11 @@ git init
 
 ```
 node_modules/
-data/
+/data/
 dashboard/dist/
 *.log
 ```
+(anchor `/data/` to the repo root so it ignores only the runtime data dir, not the `server/data/` source module.)
 
 - [ ] **Step 3: Create `package.json`**
 
@@ -107,13 +108,15 @@ export default defineConfig({
     }
   },
   test: {
-    environmentMatchGlobs: [
-      ['dashboard/**', 'jsdom'],
-      ['tests/**', 'node']
-    ]
+    root: '.',
+    // Vitest v4 removed `environmentMatchGlobs`. Default env is node (server tests);
+    // dashboard test files opt into jsdom via a `// @vitest-environment jsdom` header.
+    environment: 'node'
   }
 });
 ```
+
+> Note (Vitest v4): each dashboard test file (`AuthContext.test.jsx`, `LinkInvalido.test.jsx`, `EventHome.test.jsx`) must start with the line `// @vitest-environment jsdom` so it runs under jsdom instead of the node default.
 
 - [ ] **Step 6: Write smoke test**
 
@@ -1232,13 +1235,12 @@ export function makeLimiter({ windowMs, max }) {
     windowMs,
     max,
     standardHeaders: true,
-    legacyHeaders: false,
-    skip: () => process.env.NODE_ENV === 'test' && process.env.DOBRO_FORCE_LIMIT !== '1'
+    legacyHeaders: false
   });
 }
 ```
 
-Note: the `skip` keeps global app limiters inert during the existing route tests; this unit test passes because it builds its own app and asserts the limiter directly via `rateLimit` (skip only triggers when both NODE_ENV==='test' and the force flag is unset — vitest does not set NODE_ENV by default, so `skip` returns false here).
+Note: no `skip` guard (Vitest sets `NODE_ENV='test'`, so a skip-on-test would disable the limiter in its own unit test). Each route test builds its own `createApp()` with a fresh limiter store and makes only a handful of requests, well under the generous per-route limits (60/30 per minute), so limits never trip during the suite. The unit test above uses its own app with `max: 2` to assert the 429 behavior directly.
 
 - [ ] **Step 4: Apply limiters in `server/app.js`**
 
