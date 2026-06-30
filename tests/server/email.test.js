@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { sendMagicLinkEmail, magicLinkHtml } from '../../server/email.js';
+import { sendMagicLinkEmail, magicLinkHtml, resetClientForTests } from '../../server/email.js';
 
-afterEach(() => { delete process.env.RESEND_API_KEY; vi.restoreAllMocks(); });
+afterEach(() => { delete process.env.RESEND_API_KEY; vi.restoreAllMocks(); resetClientForTests(); });
 
 describe('email', () => {
   it('builds branded html with the link', () => {

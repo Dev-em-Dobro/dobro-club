@@ -31,12 +31,18 @@ export async function createOrGetLead(eventId, input) {
     token: generateToken(), source: 'captacao-externa', revoked: false,
     created_at: new Date().toISOString(), last_seen_at: null
   };
-  const { rows } = await query(
+  const ins = await query(
     `INSERT INTO leads (id, event_id, name, email, phone, token, source, revoked, created_at, last_seen_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT DO NOTHING RETURNING *`,
     [row.id, row.event_id, row.name, row.email, row.phone, row.token, row.source, row.revoked, row.created_at, row.last_seen_at]
   );
-  return { lead: mapLead(rows[0]), isNew: true };
+  if (ins.rows[0]) return { lead: mapLead(ins.rows[0]), isNew: true };
+  // Lost the race — another concurrent request inserted the same email/phone.
+  const { rows: again } = await query(
+    `SELECT * FROM leads WHERE event_id = $1 AND ((email IS NOT NULL AND email = $2) OR (phone IS NOT NULL AND phone = $3)) LIMIT 1`,
+    [eventId, input.email || null, input.phone || null]
+  );
+  return { lead: mapLead(again[0]), isNew: false };
 }
 
 export async function getLeadByToken(token) {
