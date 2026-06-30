@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser';
 import { getEvent, verifyApiKey } from './events.js';
 import { validateLeadInput } from './validate.js';
 import {
-  createOrGetLead, getLeadByToken, getLeadById, touchLastSeen
+  createOrGetLead, getLeadByToken, getLeadById, touchLastSeen, setRevoked
 } from './leads.js';
 import { buildMagicLink } from './auth/token.js';
 import { signSession, verifySession } from './auth/session.js';
@@ -39,7 +39,11 @@ export function createApp() {
 
     const { lead, isNew } = await createOrGetLead(event.id, value);
     const magicLink = buildMagicLink(lead.token);
-    if (isNew) await fireInscriptionWebhook(event, lead, magicLink);
+    if (isNew) {
+      fireInscriptionWebhook(event, lead, magicLink)
+        .then((r) => { if (!r.sent) console.warn('inscription webhook not sent:', r.reason); })
+        .catch((e) => console.error('inscription webhook error:', e));
+    }
     return res.json({ leadId: lead.id, magicLink, isNew });
   });
 
@@ -74,6 +78,20 @@ export function createApp() {
       path: '/'
     });
     return res.redirect(302, `/e/${event?.slug || lead.eventId}`);
+  });
+
+  app.post('/api/events/:eventId/leads/:leadId/revoke', async (req, res) => {
+    if (!/^[a-zA-Z0-9_-]+$/.test(req.params.eventId)) {
+      return res.status(400).json({ error: 'id de evento inválido' });
+    }
+    const event = await getEvent(req.params.eventId);
+    if (!event) return res.status(404).json({ error: 'evento não encontrado' });
+    if (!verifyApiKey(event, req.get('x-api-key'))) {
+      return res.status(401).json({ error: 'api key inválida' });
+    }
+    const ok = await setRevoked(event.id, req.params.leadId, true);
+    if (!ok) return res.status(404).json({ error: 'lead não encontrado' });
+    return res.json({ leadId: req.params.leadId, revoked: true });
   });
 
   app.use('/api', (req, res) => res.status(404).json({ error: 'não encontrado' }));
