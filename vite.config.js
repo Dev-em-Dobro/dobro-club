@@ -12,9 +12,9 @@ export default defineConfig({
   },
   test: {
     root: '.',
-    environmentMatchGlobs: [
-      ['dashboard/**', 'jsdom'],
-      ['tests/**', 'node']
-    ]
+    // Vitest v4 removed `environmentMatchGlobs`. Default environment is node
+    // (server tests under tests/**); dashboard test files opt into jsdom with a
+    // `// @vitest-environment jsdom` header comment on their first line.
+    environment: 'node'
   }
 });
