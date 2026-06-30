@@ -3,10 +3,12 @@
 body { margin:0; background:var(--bg); color:var(--fg); font-family: system-ui, sans-serif; }
 .screen { min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:24px; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 .card { width:100%; max-width:420px; text-align:center; }
-.btn { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 20px; border-radius:12px; background:var(--accent); color:#06210f; font-weight:600; text-decoration:none; border:0; }
+.btn { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 20px; border-radius:12px; background:var(--accent); color:#06210f; font-weight:600; text-decoration:none; border:0; cursor: pointer; }
 .event-shell { min-height:100dvh; display:flex; flex-direction:column; }
 .event-header { padding:20px 16px; font-weight:600; }
 .event-content { flex:1; padding:16px; color:var(--muted); }
 .bottom-nav { position:sticky; bottom:0; display:flex; gap:4px; padding:8px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); background:#111119; border-top:1px solid #1e1e28; }
 .bottom-nav button { flex:1; min-height:44px; border:0; border-radius:10px; background:transparent; color:var(--muted); font-size:12px; }
 .bottom-nav button:disabled { opacity:.5; }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.bottom-nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }

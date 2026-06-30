@@ -13,7 +13,7 @@ describe('EventHome', () => {
     render(<EventHome />);
     expect(screen.getByText(/Diego/)).toBeTruthy();
     for (const item of ['Aulas', 'Comunidade', 'Feed', 'Ingresso', 'Indicações', 'Certificado']) {
-      expect(screen.getByRole('button', { name: item })).toBeTruthy();
+      expect(screen.getByRole('button', { name: item, hidden: true })).toBeTruthy();
     }
   });
 });

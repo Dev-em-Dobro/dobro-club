@@ -25,4 +25,10 @@ describe('AuthContext', () => {
     render(<AuthProvider><Probe /></AuthProvider>);
     expect(await screen.findByText('sem sessão')).toBeTruthy();
   });
+
+  it('shows no session when the request fails', async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error('net'));
+    render(<AuthProvider><Probe /></AuthProvider>);
+    expect(await screen.findByText('sem sessão')).toBeTruthy();
+  });
 });
