@@ -9,6 +9,8 @@ import { buildMagicLink } from './auth/token.js';
 import { signSession, verifySession } from './auth/session.js';
 import { fireInscriptionWebhook } from './webhook.js';
 import { makeLimiter } from './ratelimit.js';
+import fs from 'node:fs';
+import path from 'node:path';
 
 export const COOKIE = 'dc_session';
 const COOKIE_MAX_AGE = 180 * 24 * 60 * 60 * 1000;
@@ -75,6 +77,16 @@ export function createApp() {
   });
 
   app.use('/api', (req, res) => res.status(404).json({ error: 'não encontrado' }));
+
+  // Single-origin SPA serving (production): `npm run build` → dashboard/dist.
+  // Non-API, non-/entrar GETs fall back to index.html so React Router handles them.
+  const distDir = path.join(process.cwd(), 'dashboard', 'dist');
+  if (fs.existsSync(distDir)) {
+    app.use(express.static(distDir));
+    app.get(/^\/(?!api\/|entrar\/).*/, (req, res) => {
+      res.sendFile(path.join(distDir, 'index.html'));
+    });
+  }
 
   app.use((err, req, res, _next) => {
     console.error(err);
