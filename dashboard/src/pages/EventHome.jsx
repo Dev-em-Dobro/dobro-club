@@ -17,9 +17,6 @@ export default function EventHome() {
   return (
     <div className="event-shell">
       <header className="hud">
-        <div className="hud-avatar">
-          <img className="sprite" src="/sprites/happy-mage.png" alt="" />
-        </div>
         <div className="hud-text">
           <p className="hud-hello">Olá, <b>{lead?.name || 'aventureiro(a)'}</b></p>
           <p className="hud-sub">Bem-vindo(a) à sua jornada <span className="twinkle">⟡</span></p>
@@ -33,7 +30,6 @@ export default function EventHome() {
             <span className="window-dots"><i></i><i></i><i></i></span>
           </div>
           <div className="window-body">
-            <img className="sprite chest" src="/sprites/chest.png" alt="" />
             <div>
               <h2 className="px">Sua jornada começa aqui</h2>
               <p>Em breve suas aulas, missões e recompensas aparecem neste salão.</p>

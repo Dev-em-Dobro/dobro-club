@@ -39,9 +39,7 @@ body {
   color: var(--text);
   font-family: var(--font-body);
   line-height: 1.6;
-  background:
-    linear-gradient(180deg, rgba(3, 6, 23, 0.82) 0%, rgba(3, 6, 23, 0.92) 60%, rgba(3, 6, 23, 0.98) 100%),
-    url("/sprites/city-bg.jpg") center top / cover no-repeat var(--bg);
+  background: #1a1a1e;
   -webkit-font-smoothing: antialiased;
 }
 
