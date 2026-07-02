@@ -18,6 +18,9 @@ const WHATSAPP_GROUP =
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB (FR-015)
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"]; // FR-015
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+// Só dígitos; DDI+DD+número tem 12–13 dígitos (fixo/celular BR).
+const onlyDigits = (v: string) => v.replace(/\D/g, "");
+const isValidPhone = (v: string) => /^\d{12,13}$/.test(v);
 
 // Etapas do fluxo conversacional (roteiro do RPG).
 type Step =
@@ -29,6 +32,8 @@ type Step =
   | "uploadPhoto"
   | "askEmail"
   | "confirmEmail"
+  | "askPhone"
+  | "confirmPhone"
   | "generating"
   | "confirmTicket"
   | "ticketProblem"
@@ -65,6 +70,7 @@ export default function IngressoChat({
   const [input, setInput] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<TicketResult | null>(null);
@@ -172,6 +178,19 @@ export default function IngressoChat({
     await botSay(["É este e-mail mesmo?", `👉 ${value}`]);
   }
 
+  async function goAskPhone() {
+    setStep("askPhone");
+    await botSay([
+      "Por último, me passa seu WhatsApp com DDI + DDD 📱",
+      "É por ele que você recupera seu acesso depois. Formato: 55 + DDD + número. Ex.: 5584991153472",
+    ]);
+  }
+
+  async function goConfirmPhone(value: string) {
+    setStep("confirmPhone");
+    await botSay(["É esse número mesmo?", `👉 ${value}`]);
+  }
+
   async function generate() {
     setStep("generating");
     await botSay([
@@ -185,6 +204,7 @@ export default function IngressoChat({
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim(),
+          phone: phone || undefined,
           photoUrl: photoUrl || undefined,
           ref: ref || undefined,
           consent: true,
@@ -277,6 +297,23 @@ export default function IngressoChat({
       void goConfirmEmail(value);
       return;
     }
+
+    if (step === "askPhone") {
+      const digits = onlyDigits(value);
+      if (!isValidPhone(digits)) {
+        pushMsg({ from: "user", text: value });
+        setInput("");
+        void botSay([
+          "Hmm, esse número não parece certo. Use DDI + DDD + número (só números). Ex.: 5584991153472 👇",
+        ]);
+        return;
+      }
+      pushMsg({ from: "user", text: digits });
+      setInput("");
+      setPhone(digits);
+      void goConfirmPhone(digits);
+      return;
+    }
   }
 
   async function onPickPhoto(file: File | undefined) {
@@ -356,11 +393,20 @@ export default function IngressoChat({
       case "greet":
       case "askName":
       case "askEmail":
+      case "askPhone":
         return (
           <form className="chat-input" onSubmit={onTextSubmit}>
             <input
-              type={step === "askEmail" ? "email" : "text"}
-              inputMode={step === "askEmail" ? "email" : "text"}
+              type={
+                step === "askEmail" ? "email" : step === "askPhone" ? "tel" : "text"
+              }
+              inputMode={
+                step === "askEmail"
+                  ? "email"
+                  : step === "askPhone"
+                    ? "numeric"
+                    : "text"
+              }
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={
@@ -368,9 +414,13 @@ export default function IngressoChat({
                   ? "Digite INGRESSO"
                   : step === "askName"
                     ? "Seu nome e sobrenome"
-                    : "voce@exemplo.com"
+                    : step === "askPhone"
+                      ? "5584991153472"
+                      : "voce@exemplo.com"
               }
-              autoComplete={step === "askEmail" ? "email" : "off"}
+              autoComplete={
+                step === "askEmail" ? "email" : step === "askPhone" ? "tel" : "off"
+              }
               aria-label="Sua mensagem"
             />
             <button type="submit" className="chat-send" aria-label="Enviar">
@@ -445,8 +495,18 @@ export default function IngressoChat({
         return (
           <QuickReplies
             options={[
-              { label: "SIM ✓", onClick: () => void generate() },
+              { label: "SIM ✓", onClick: () => void goAskPhone() },
               { label: "NÃO", variant: "ghost", onClick: () => void goAskEmail() },
+            ]}
+          />
+        );
+
+      case "confirmPhone":
+        return (
+          <QuickReplies
+            options={[
+              { label: "SIM ✓", onClick: () => void generate() },
+              { label: "NÃO", variant: "ghost", onClick: () => void goAskPhone() },
             ]}
           />
         );
