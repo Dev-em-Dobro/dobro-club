@@ -118,6 +118,16 @@ img.sprite { image-rendering: pixelated; display: block; }
 }
 .scroll-text { margin: 0; font-weight: 600; color: #6b4a23; }
 
+/* access-link parchment (meu-acesso + recovery result) */
+.scroll-cta {
+  display: inline-block;
+  margin: 16px 0 10px;
+  max-width: 100%;
+  word-break: break-word;
+}
+.scroll-hint { margin: 0; font-size: 12px; color: #6b4a23; }
+.scroll-hint a { color: #5a3210; font-weight: 700; text-decoration: underline; }
+
 /* mage peeking above the scroll */
 .scroll-mage {
   width: 116px;
