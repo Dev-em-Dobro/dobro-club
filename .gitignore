@@ -3,7 +3,26 @@ node_modules/
 dashboard/dist/
 *.log
 
+# Next.js / build / TS
+.next/
+out/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# deploy / certs
+.vercel
+*.pem
+
 # secrets — never commit
 .env
 .env.local
 .env.*.local
+
+.claude/
+
+docs/
+
+CLAUDE.md
