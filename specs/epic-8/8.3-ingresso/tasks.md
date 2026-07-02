@@ -80,23 +80,23 @@ entra no evento; repetir com mesmo e-mail/telefone não duplica; recuperar por e
 
 ### Tests for User Story 1 (write FIRST, ensure they FAIL) ⚠️
 
-- [ ] T016 [P] [US1] Teste `tests/ingresso.route.test.ts`: invocar `POST` de `app/api/e/[slug]/ingresso` cria lead, retorna `{leadId,isNew,magicLink,ticket.imageUrl}`, envia e-mail best-effort; **idempotente por e-mail OU telefone**; `consent!==true` → 400; e-mail/telefone inválido → 400; slug inexistente → 404 (FR-001,002,004,005,013,014)
-- [ ] T017 [P] [US1] Teste `tests/ingresso.recuperar.test.ts`: `POST` de `.../recuperar` reenvia link ao e-mail cadastrado; resposta **neutra** idêntica p/ e-mail existente e inexistente; corpo **nunca** contém `magicLink`/`leadId` (FR-017,018, SC-006)
+- [X] T016 [P] [US1] Teste `tests/ingresso.route.test.ts`: invocar `POST` de `app/api/e/[slug]/ingresso` cria lead, retorna `{leadId,isNew,magicLink,ticket.imageUrl}`, envia e-mail best-effort; **idempotente por e-mail OU telefone**; `consent!==true` → 400; e-mail/telefone inválido → 400; slug inexistente → 404 (FR-001,002,004,005,013,014)
+- [X] T017 [P] [US1] Teste `tests/ingresso.recuperar.test.ts`: `POST` de `.../recuperar` reenvia link ao e-mail cadastrado; resposta **neutra** idêntica p/ e-mail existente e inexistente; corpo **nunca** contém `magicLink`/`leadId` (FR-017,018, SC-006)
 - [ ] T018 [P] [US1] Teste `tests/components/IngressoForm.test.tsx`: valida campos, avatar como default, bloqueia sem consentimento, submete; **rejeita foto > 5MB e formato fora de JPEG/PNG/WebP → fallback avatar** (FR-003,013,015,016)
 - [ ] T019 [P] [US1] Teste da página pronto `tests/ingresso.pronto.test.tsx`: exibe o magic link + imagem do ingresso (foto ou avatar) na mesma sessão (FR-005)
 - [ ] T020 [P] [US1] Teste `tests/recuperar.page.test.tsx`: submit mostra mensagem neutra, sem exibir link (FR-017,018)
 
 ### Implementation for User Story 1
 
-- [ ] T021 [P] [US1] Implementar `lib/ticket.ts`: `buildTicketImageUrl(lead)` (URL de transformação Cloudinary: template + nome + foto|avatar) + constante do avatar padrão (research D1)
-- [ ] T022 [US1] Implementar `lib/ingresso.ts`: montar `ticket` (imageUrl) do response — reuso pelos Route Handlers
-- [ ] T023 [US1] Implementar `app/api/e/[slug]/ingresso/route.ts` (`POST` público, rate limit): `getEventBySlug`, `validateLeadInput`, `createOrGetLead`, `setPhoto` se `isNew`, `buildMagicLink`, envio de e-mail best-effort, retorno com `magicLink` + `ticket`; fazer T016 passar (FR-001..005,013,014)
-- [ ] T024 [US1] Implementar `app/api/e/[slug]/ingresso/recuperar/route.ts` (`POST` público, rate limit estrito): `getLeadByEmail`, reenvio best-effort de `sendMagicLinkEmail`, resposta neutra; fazer T017 passar (FR-017,018)
-- [ ] T025 [P] [US1] Implementar `components/IngressoForm.tsx`: form mobile-first (toque ≥44px), toggle foto|avatar com **upload não assinado** ao Cloudinary, checkbox de consentimento, captura de `?ref=` e repasse (FR-003,013,015,016)
-- [ ] T026 [US1] Implementar `app/ingresso/page.tsx`: renderiza `IngressoForm`, submete ao Route Handler e navega p/ pronto
-- [ ] T027 [US1] Implementar `app/ingresso/pronto/page.tsx`: exibir magic link + imagem do ingresso (via `lib/ticket.ts`) na mesma sessão (FR-005)
-- [ ] T028 [US1] Implementar `app/recuperar-link/page.tsx`: input de e-mail → chama `/recuperar` → mensagem neutra (FR-017,018)
-- [ ] T029 [US1] Tratar upload inválido de foto em `components/IngressoForm.tsx`: rejeitar **> 5MB** e formatos fora de **JPEG/PNG/WebP** (e erro de upload) com mensagem e **fallback ao avatar**, sem travar a geração (FR-015)
+- [X] T021 [P] [US1] Implementar `lib/ticket.ts`: `buildTicketImageUrl(lead)` (URL de transformação Cloudinary: template + nome + foto|avatar) + constante do avatar padrão (research D1)
+- [X] T022 [US1] Implementar `lib/ingresso.ts`: montar `ticket` (imageUrl) do response — reuso pelos Route Handlers
+- [X] T023 [US1] Implementar `app/api/e/[slug]/ingresso/route.ts` (`POST` público, rate limit): `getEventBySlug`, `validateLeadInput`, `createOrGetLead`, `setPhoto` se `isNew`, `buildMagicLink`, envio de e-mail best-effort, retorno com `magicLink` + `ticket`; fazer T016 passar (FR-001..005,013,014)
+- [X] T024 [US1] Implementar `app/api/e/[slug]/ingresso/recuperar/route.ts` (`POST` público, rate limit estrito): `getLeadByEmail`, reenvio best-effort de `sendMagicLinkEmail`, resposta neutra; fazer T017 passar (FR-017,018)
+- [X] T025 [P] [US1] Implementar `components/IngressoForm.tsx`: form mobile-first (toque ≥44px), toggle foto|avatar com **upload não assinado** ao Cloudinary, checkbox de consentimento, captura de `?ref=` e repasse (FR-003,013,015,016)
+- [X] T026 [US1] Implementar `app/ingresso/page.tsx`: renderiza `IngressoForm`, submete ao Route Handler e navega p/ pronto
+- [X] T027 [US1] Implementar `app/ingresso/pronto/page.tsx`: exibir magic link + imagem do ingresso (via `lib/ticket.ts`) na mesma sessão (FR-005)
+- [X] T028 [US1] Implementar `app/recuperar-link/page.tsx`: input de e-mail → chama `/recuperar` → mensagem neutra (FR-017,018)
+- [X] T029 [US1] Tratar upload inválido de foto em `components/IngressoForm.tsx`: rejeitar **> 5MB** e formatos fora de **JPEG/PNG/WebP** (e erro de upload) com mensagem e **fallback ao avatar**, sem travar a geração (FR-015)
 
 **Checkpoint**: US1 funcional e testável sozinha — MVP entregável (gerar + acessar + recuperar).
 
