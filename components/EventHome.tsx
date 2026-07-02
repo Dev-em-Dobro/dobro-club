@@ -2,11 +2,11 @@
 
 import { useAuth } from "./AuthContext";
 
-const NAV = [
+const NAV: Array<{ label: string; ico: string; href?: string }> = [
   { label: "Aulas", ico: "📜" },
   { label: "Comunidade", ico: "💬" },
   { label: "Feed", ico: "🗞️" },
-  { label: "Ingresso", ico: "🎟️" },
+  { label: "Ingresso", ico: "🎟️", href: "/meu-acesso" },
   { label: "Indicações", ico: "🤝" },
   { label: "Certificado", ico: "🏆" },
 ];
@@ -49,19 +49,24 @@ export default function EventHome() {
         </section>
       </main>
 
-      <nav
-        className="bottom-nav"
-        aria-label="Navegação do evento"
-        aria-hidden="true"
-      >
-        {NAV.map(({ label, ico }) => (
-          <button key={label} type="button" disabled>
-            <span className="ico" aria-hidden="true">
-              {ico}
-            </span>
-            <span className="lbl">{label}</span>
-          </button>
-        ))}
+      <nav className="bottom-nav" aria-label="Navegação do evento">
+        {NAV.map(({ label, ico, href }) =>
+          href ? (
+            <a key={label} href={href}>
+              <span className="ico" aria-hidden="true">
+                {ico}
+              </span>
+              <span className="lbl">{label}</span>
+            </a>
+          ) : (
+            <button key={label} type="button" disabled>
+              <span className="ico" aria-hidden="true">
+                {ico}
+              </span>
+              <span className="lbl">{label}</span>
+            </button>
+          ),
+        )}
       </nav>
     </div>
   );
