@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { verifySession, COOKIE } from "@/lib/auth/session";
 import { getLeadById } from "@/lib/leads";
+import { buildMagicLink } from "@/lib/auth/token";
 
 export async function GET(req: NextRequest) {
   const sess = verifySession(req.cookies.get(COOKIE)?.value);
@@ -13,5 +14,7 @@ export async function GET(req: NextRequest) {
     leadId: lead.id,
     name: lead.name,
     eventId: lead.eventId,
+    // O dono, já autenticado, pode ver o próprio link p/ guardar/recuperar.
+    magicLink: buildMagicLink(lead.token),
   });
 }
