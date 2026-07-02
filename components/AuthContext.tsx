@@ -6,6 +6,7 @@ export interface Lead {
   leadId: string;
   name: string | null;
   eventId: string;
+  magicLink?: string;
 }
 
 interface AuthState {
