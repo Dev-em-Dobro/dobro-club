@@ -134,6 +134,17 @@ export async function getLeadByEmail(
   return mapLead(rows[0]);
 }
 
+export async function getLeadByPhone(
+  eventId: string,
+  phone: string,
+): Promise<Lead | null> {
+  const { rows } = await query<LeadRow>(
+    "SELECT * FROM leads WHERE event_id = $1 AND phone IS NOT NULL AND phone = $2 LIMIT 1",
+    [eventId, phone],
+  );
+  return mapLead(rows[0]);
+}
+
 export async function touchLastSeen(
   eventId: string,
   leadId: string,
