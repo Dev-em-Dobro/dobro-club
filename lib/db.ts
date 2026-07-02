@@ -2,8 +2,15 @@ import pg from "pg";
 
 const { Pool } = pg;
 
-let pool: pg.Pool | null = null;
-let poolPromise: Promise<pg.Pool> | null = null;
+// Cache do pool em globalThis. No dev do Next, cada Route Handler é um bundle
+// separado com a SUA PRÓPRIA cópia deste módulo — sem isso, cada rota subiria um
+// pg-mem isolado e o lead criado na captação "sumiria" na hora de validar o
+// magic link (`/entrar/[token]`). globalThis é único por processo, então todas
+// as rotas (e os hot-reloads) compartilham o MESMO banco.
+const globalForDb = globalThis as unknown as {
+  __dobroPool?: pg.Pool | null;
+  __dobroPoolPromise?: Promise<pg.Pool> | null;
+};
 
 function buildPool(): pg.Pool {
   const sslCert = process.env.NEON_CA_CERT;
@@ -35,13 +42,14 @@ async function createPool(): Promise<pg.Pool> {
     const { newDb } = await import("pg-mem");
     const mem = newDb();
     const { Pool: MemPool } = mem.adapters.createPg();
-    pool = new MemPool() as unknown as pg.Pool; // set antes do seed p/ query() achar o pool
+    // set antes do seed p/ query() achar o pool (via ensurePool)
+    globalForDb.__dobroPool = new MemPool() as unknown as pg.Pool;
     await initSchema();
     await seedDemoEvent();
     console.warn(
       "[db] DATABASE_URL ausente — usando Postgres em memória (dev). Dados não persistem entre reinícios.",
     );
-    return pool;
+    return globalForDb.__dobroPool;
   }
 
   return buildPool();
@@ -49,21 +57,21 @@ async function createPool(): Promise<pg.Pool> {
 
 /** Garante um pool pronto (com fallback dev) antes de qualquer query. */
 export async function ensurePool(): Promise<pg.Pool> {
-  if (pool) return pool;
-  if (!poolPromise) poolPromise = createPool();
-  pool = await poolPromise;
-  return pool;
+  if (globalForDb.__dobroPool) return globalForDb.__dobroPool;
+  if (!globalForDb.__dobroPoolPromise) globalForDb.__dobroPoolPromise = createPool();
+  globalForDb.__dobroPool = await globalForDb.__dobroPoolPromise;
+  return globalForDb.__dobroPool;
 }
 
 export function getPool(): pg.Pool {
-  if (!pool) pool = buildPool();
-  return pool;
+  if (!globalForDb.__dobroPool) globalForDb.__dobroPool = buildPool();
+  return globalForDb.__dobroPool;
 }
 
 /** Tests inject a pg-mem pool here before any query runs. */
 export function setPool(p: pg.Pool | null): void {
-  pool = p;
-  poolPromise = null;
+  globalForDb.__dobroPool = p;
+  globalForDb.__dobroPoolPromise = null;
 }
 
 export async function query<T extends pg.QueryResultRow = pg.QueryResultRow>(
