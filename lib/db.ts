@@ -3,6 +3,7 @@ import pg from "pg";
 const { Pool } = pg;
 
 let pool: pg.Pool | null = null;
+let poolPromise: Promise<pg.Pool> | null = null;
 
 function buildPool(): pg.Pool {
   const sslCert = process.env.NEON_CA_CERT;
@@ -20,6 +21,40 @@ function buildPool(): pg.Pool {
   return new Pool({ connectionString: process.env.DATABASE_URL, ssl });
 }
 
+/**
+ * Fallback de desenvolvimento: sem `DATABASE_URL` (e fora de produção), sobe um
+ * Postgres em memória (pg-mem) já com o evento demo semeado, para o fluxo de
+ * ingresso rodar sem banco externo. Dados NÃO persistem entre reinícios.
+ */
+async function createPool(): Promise<pg.Pool> {
+  const devFallback =
+    !process.env.DATABASE_URL && process.env.NODE_ENV !== "production";
+
+  if (devFallback) {
+    // pg-mem é externo (serverExternalPackages) — só carregado neste caminho dev.
+    const { newDb } = await import("pg-mem");
+    const mem = newDb();
+    const { Pool: MemPool } = mem.adapters.createPg();
+    pool = new MemPool() as unknown as pg.Pool; // set antes do seed p/ query() achar o pool
+    await initSchema();
+    await seedDemoEvent();
+    console.warn(
+      "[db] DATABASE_URL ausente — usando Postgres em memória (dev). Dados não persistem entre reinícios.",
+    );
+    return pool;
+  }
+
+  return buildPool();
+}
+
+/** Garante um pool pronto (com fallback dev) antes de qualquer query. */
+export async function ensurePool(): Promise<pg.Pool> {
+  if (pool) return pool;
+  if (!poolPromise) poolPromise = createPool();
+  pool = await poolPromise;
+  return pool;
+}
+
 export function getPool(): pg.Pool {
   if (!pool) pool = buildPool();
   return pool;
@@ -28,13 +63,35 @@ export function getPool(): pg.Pool {
 /** Tests inject a pg-mem pool here before any query runs. */
 export function setPool(p: pg.Pool | null): void {
   pool = p;
+  poolPromise = null;
 }
 
-export function query<T extends pg.QueryResultRow = pg.QueryResultRow>(
+export async function query<T extends pg.QueryResultRow = pg.QueryResultRow>(
   text: string,
   params?: unknown[],
 ): Promise<pg.QueryResult<T>> {
-  return getPool().query<T>(text, params as never[]);
+  const p = await ensurePool();
+  return p.query<T>(text, params as never[]);
+}
+
+/** Semeia um evento ativo para o fluxo de ingresso funcionar no fallback dev. */
+async function seedDemoEvent(): Promise<void> {
+  const slug = process.env.NEXT_PUBLIC_EVENT_SLUG || "piloto";
+  const { rows } = await query("SELECT id FROM events WHERE slug = $1", [slug]);
+  if (rows[0]) return;
+  await query(
+    `INSERT INTO events (id, slug, name, status, api_key_hash, webhook_url, created_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+    [
+      "evt_demo",
+      slug,
+      "Semana do Zero ao Programador Contratado",
+      "active",
+      "dev-fallback",
+      null,
+      new Date().toISOString(),
+    ],
+  );
 }
 
 export const SCHEMA = `
