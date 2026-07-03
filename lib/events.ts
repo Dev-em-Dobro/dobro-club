@@ -8,6 +8,8 @@ export interface EventRow {
   status: string | null;
   apiKeyHash: string | null;
   webhookUrl: string | null;
+  /** Início da semana do evento; base da janela de ingresso (T-3 dias). `null` ⇒ sem data marcada. */
+  weekStartsAt: string | null;
 }
 
 export function hashApiKey(key: string): string {
@@ -15,7 +17,8 @@ export function hashApiKey(key: string): string {
 }
 
 const SELECT_EVENT = `SELECT id, slug, name, status,
-        api_key_hash AS "apiKeyHash", webhook_url AS "webhookUrl"
+        api_key_hash AS "apiKeyHash", webhook_url AS "webhookUrl",
+        week_starts_at AS "weekStartsAt"
    FROM events`;
 
 export async function getEvent(eventId: string): Promise<EventRow | null> {
