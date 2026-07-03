@@ -75,10 +75,18 @@ await emit(eventId, leadId, type, data);
 | `lesson.completed` | 8.4 (Trilho B) | 8.8/8.9 | `{ lessonId, durationSeconds }` |
 | `ticket.shared`    | 8.3 (Trilho B) | 8.8/8.9 | `{ channel }` |
 | `referral.signup`  | **8.3** (na geração via indicação) | **8.7** (ranking/premiação) | `{ referrerLeadId }` |
+| `hub.viewed`       | **8.12** (acesso ao hub pré-evento) | 8.8/8.9 | `{ phase }` |
+| `content.opened`   | **8.14** (abrir conteúdo dia-1) | 8.8/8.9 | `{ kind, itemId }` |
 
 > **Nota (8.3):** a atribuição de indicação acontece no momento da geração do ingresso, então a
 > **8.3 emite** `referral.signup`; a **8.7 consome** para ranking/premiação. Ajuste acordado entre os
 > donos dos trilhos.
+
+> **Nota (8.12):** o hub pré-evento emite `hub.viewed` a cada acesso do lead (`phase` =
+> `provisoria`/`oficial`); alimenta o lead scoring (8.8). Novo tipo adicionado de forma coordenada.
+
+> **Nota (8.14):** abrir um item de conteúdo dia-1 emite `content.opened` (`kind` =
+> `lesson`/`doc`/`codequest`, `itemId`); alimenta o lead scoring (8.8). Novo tipo coordenado.
 
 Novos tipos: adicione a linha nesta tabela **no mesmo PR** que passa a emiti-los.
 

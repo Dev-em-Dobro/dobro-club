@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fluxo de acesso ao conteúdo — Dobro Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'base',
+    themeVariables: { primaryColor:'#4F6EF7', primaryTextColor:'#fff', primaryBorderColor:'#3554D4', lineColor:'#6B7280' } });
+</script>
+<style>
+  :root{color-scheme:dark}
+  body{margin:0;background:#0f1117;color:#e5e7eb;font-family:Inter,sans-serif;line-height:1.6}
+  main{max-width:820px;margin:0 auto;padding:32px 20px}
+  h1{font-size:1.6rem} h2{font-size:1.1rem;margin-top:32px;color:#a5b4fc}
+  .mermaid{background:#fff;border-radius:12px;padding:20px;text-align:center}
+  .glossario b{color:#fff} footer{margin-top:40px;font-size:.8rem;color:#6b7280}
+</style></head>
+<body><main>
+  <h1>Fluxo de acesso ao conteúdo — Dobro Club</h1>
+  <div class="mermaid">
+%%{init: {'theme':'base','themeVariables':{'primaryColor':'#4F6EF7','primaryTextColor':'#fff','primaryBorderColor':'#3554D4','lineColor':'#6B7280','secondaryColor':'#F3F4F6','tertiaryColor':'#EEF2FF'}}}%%
+flowchart TD
+  A([Abre o conteúdo]) --> B[Escolhe um item]
+  B --> C{Já é participante?}
+  C -- Não --> D[Mestre pede seus dados]
+  D --> E{Respondeu a pesquisa?}
+  C -- Sim --> E
+  E -- Não --> F[Responde a pesquisa]
+  F --> G{Já foi liberado?}
+  E -- Sim --> G
+  G -- Sim --> H([Conteúdo liberado])
+  G -- Não --> I([Aparece em breve])
+  </div>
+  <h2>Resumo</h2>
+  <p>Qualquer pessoa entra e vê a lista do evento, mas tudo começa trancado. Ao escolher um item,
+  o Mestre pede nome, e-mail e WhatsApp (e já te reconhece dali pra frente) e em seguida você
+  responde uma pesquisa rápida. Passou nos dois? O item abre — a menos que ainda não tenha chegado
+  a data de liberação, e aí ele aparece como "em breve".</p>
+  <h2>Glossário</h2>
+  <div class="glossario">
+    <p><b>Mestre do Evento</b> — o personagem que recebe você e pega seus dados na entrada.</p>
+    <p><b>Participante</b> — quem já passou pelo Mestre e é reconhecido pelo sistema.</p>
+    <p><b>Liberação (drip)</b> — cada conteúdo tem uma data pra abrir; antes dela fica "em breve".</p>
+    <p><b>Item</b> — uma aula, um material/presente ou o acesso ao CodeQuest.</p>
+  </div>
+  <footer>Gerado com a skill desenha-pra-mim</footer>
+</main></body></html>
