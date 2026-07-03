@@ -18,6 +18,8 @@ export interface SeedEventOptions {
   status?: string;
   apiKey?: string;
   webhookUrl?: string | null;
+  /** ISO string do início da semana do evento; `null`/ausente ⇒ sem data marcada. */
+  weekStartsAt?: string | null;
 }
 
 export async function seedEvent(overrides: SeedEventOptions = {}) {
@@ -28,11 +30,12 @@ export async function seedEvent(overrides: SeedEventOptions = {}) {
     status: "active",
     apiKey: "k",
     webhookUrl: null as string | null,
+    weekStartsAt: null as string | null,
     ...overrides,
   };
   await query(
-    `INSERT INTO events (id, slug, name, status, api_key_hash, webhook_url, created_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+    `INSERT INTO events (id, slug, name, status, api_key_hash, webhook_url, created_at, week_starts_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
     [
       ev.id,
       ev.slug,
@@ -41,6 +44,7 @@ export async function seedEvent(overrides: SeedEventOptions = {}) {
       hashApiKey(ev.apiKey),
       ev.webhookUrl,
       new Date().toISOString(),
+      ev.weekStartsAt,
     ],
   );
   return ev;
