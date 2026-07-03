@@ -6,7 +6,14 @@ export interface SessionPayload {
 }
 
 function secret(): string {
-  return process.env.DOBRO_SESSION_SECRET || "dev-secret-change-me";
+  const s = process.env.DOBRO_SESSION_SECRET;
+  if (s) return s;
+  // Em produção o secret é obrigatório: sem ele o cookie dc_session (HMAC) fica
+  // forjável. Falha explícita em vez de silenciosamente usar o default de dev.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("DOBRO_SESSION_SECRET ausente em produção");
+  }
+  return "dev-secret-change-me";
 }
 
 export function signSession(payload: SessionPayload): string {
