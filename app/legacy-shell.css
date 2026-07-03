@@ -720,3 +720,131 @@ img.sprite { image-rendering: pixelated; display: block; }
   font-weight: 700;
   color: var(--cyan);
 }
+
+/* Hub do evento (Story 8.12) — credencial provisória / ingresso oficial + gate */
+.ticket-figure {
+  margin: 0 0 14px;
+  width: 100%;
+  max-width: 300px;
+  position: relative;
+}
+.ticket-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+  border: 3px solid var(--magenta);
+  box-shadow: 0 0 0 3px var(--purple-deep), 0 12px 0 rgba(0, 0, 0, 0.35);
+}
+.ticket-badge {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.ticket-badge--provisoria {
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px dashed var(--cyan);
+  color: var(--cyan);
+}
+.ticket-badge--oficial {
+  background: var(--magenta);
+  border: 2px solid var(--purple-deep);
+  color: #fff;
+}
+.hub-gate {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  text-align: center;
+}
+.hub-gate .scroll-hint { margin-bottom: 10px; }
+
+/* Conteúdo dia-1 (Story 8.14) — aulas / docs / CodeQuest */
+.content-screen {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
+}
+.content-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.content-title { font-size: 22px; font-weight: 800; }
+.content-section { margin-bottom: 26px; }
+.content-section-title {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cyan);
+  margin-bottom: 10px;
+}
+.content-empty { font-size: 14px; opacity: 0.7; }
+.content-lock-note {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: -6px 0 18px;
+  padding: 12px 14px;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+}
+.content-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.content-item {
+  background: var(--bg-card);
+  border: 3px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+.content-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.content-item-title { font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.badge-gift {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--magenta);
+  color: #fff;
+}
+.content-item-desc { font-size: 13px; opacity: 0.75; margin-top: 6px; }
+.content-open { min-height: 44px; padding: 0 16px; white-space: nowrap; }
+.content-open:disabled { opacity: 0.6; }
+.content-locked {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cyan);
+  white-space: nowrap;
+}
+.content-embed {
+  margin-top: 12px;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+}
+.content-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
