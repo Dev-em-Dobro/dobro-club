@@ -9,7 +9,11 @@ export type EngagementType =
   | "lesson.started"
   | "lesson.completed"
   | "ticket.shared"
-  | "referral.signup";
+  | "referral.signup"
+  // Emitido pela Story 8.12 quando o lead abre o hub pré-evento.
+  | "hub.viewed"
+  // Emitido pela Story 8.14 quando o lead abre um item de conteúdo dia-1.
+  | "content.opened";
 
 /**
  * Emissor compartilhado de eventos de engajamento.
@@ -39,6 +43,20 @@ export async function emit(
 
   // Webhook best-effort: resolve o evento e dispara sem bloquear a resposta.
   void resolveAndFire(eventId, leadId, type, data);
+}
+
+/**
+ * Gate da pesquisa (Story 8.2 → 8.12): `true` quando o lead já emitiu
+ * `survey.completed`. Lê apenas o contrato de eventos (Constituição IV) — não
+ * depende do armazenamento nativo da pesquisa (ainda em Express).
+ */
+export async function hasCompletedSurvey(leadId: string): Promise<boolean> {
+  const { rows } = await query(
+    `SELECT 1 FROM engagement_events
+     WHERE lead_id = $1 AND type = 'survey.completed' LIMIT 1`,
+    [leadId],
+  );
+  return rows.length > 0;
 }
 
 async function resolveAndFire(
