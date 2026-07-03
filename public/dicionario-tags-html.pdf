@@ -1,0 +1,167 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [ 5 0 R 7 0 R 9 0 R ] /Count 3 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 2700 >>
+stream
+BT /F2 22 Tf 1 0 0 1 56 785.89 Tm (Dicionario de Tags HTML) Tj ET
+BT /F1 11 Tf 1 0 0 1 56 764.89 Tm (Presente Dobro Club - guia rapido das tags mais usadas) Tj ET
+BT /F2 14 Tf 1 0 0 1 56 731.89 Tm (Estrutura do documento) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 714.89 Tm (<!DOCTYPE html>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 699.89 Tm (Declara o documento como HTML5.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 682.89 Tm (<html>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 667.89 Tm (Elemento raiz que envolve toda a pagina.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 650.89 Tm (<head>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 635.89 Tm (Metadados: titulo, links, scripts, charset.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 618.89 Tm (<body>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 603.89 Tm (Conteudo visivel da pagina.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 586.89 Tm (<title>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 571.89 Tm (Titulo mostrado na aba do navegador.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 554.89 Tm (<meta>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 539.89 Tm (Metadado \(charset, viewport, descricao\).) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 522.89 Tm (<link>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 507.89 Tm (Liga recursos externos, como folhas de estilo.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 490.89 Tm (<script>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 475.89 Tm (Insere ou referencia codigo JavaScript.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 458.89 Tm (<style>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 443.89 Tm (CSS embutido no proprio documento.) Tj ET
+BT /F2 14 Tf 1 0 0 1 56 422.89 Tm (Texto e conteudo) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 405.89 Tm (<h1> a <h6>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 390.89 Tm (Titulos, do mais importante ao menos.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 373.89 Tm (<p>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 358.89 Tm (Paragrafo de texto.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 341.89 Tm (<br>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 326.89 Tm (Quebra de linha simples.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 309.89 Tm (<hr>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 294.89 Tm (Linha divisoria \(separador tematico\).) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 277.89 Tm (<strong>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 262.89 Tm (Texto com forte importancia \(negrito\).) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 245.89 Tm (<em>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 230.89 Tm (Enfase no texto \(italico\).) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 213.89 Tm (<span>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 198.89 Tm (Container em linha, sem significado proprio.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 181.89 Tm (<blockquote>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 166.89 Tm (Citacao em bloco.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 149.89 Tm (<code>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 134.89 Tm (Trecho de codigo em linha.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 117.89 Tm (<pre>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 102.89 Tm (Texto pre-formatado, preserva espacos.) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 2538 >>
+stream
+BT /F2 14 Tf 1 0 0 1 56 781.89 Tm (Listas) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 764.89 Tm (<ul>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 749.89 Tm (Lista nao ordenada \(marcadores\).) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 732.89 Tm (<ol>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 717.89 Tm (Lista ordenada \(numeros\).) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 700.89 Tm (<li>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 685.89 Tm (Item de uma lista.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 668.89 Tm (<dl>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 653.89 Tm (Lista de definicoes.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 636.89 Tm (<dt>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 621.89 Tm (Termo em uma lista de definicoes.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 604.89 Tm (<dd>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 589.89 Tm (Descricao do termo.) Tj ET
+BT /F2 14 Tf 1 0 0 1 56 568.89 Tm (Links e midia) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 551.89 Tm (<a>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 536.89 Tm (Link \(ancora\) para outra pagina ou secao.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 519.89 Tm (<img>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 504.89 Tm (Imagem.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 487.89 Tm (<video>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 472.89 Tm (Video incorporado.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 455.89 Tm (<audio>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 440.89 Tm (Audio incorporado.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 423.89 Tm (<iframe>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 408.89 Tm (Incorpora outra pagina dentro desta.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 391.89 Tm (<figure>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 376.89 Tm (Agrupa uma midia com sua legenda.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 359.89 Tm (<figcaption>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 344.89 Tm (Legenda de uma figure.) Tj ET
+BT /F2 14 Tf 1 0 0 1 56 323.89 Tm (Formularios) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 306.89 Tm (<form>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 291.89 Tm (Formulario para enviar dados.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 274.89 Tm (<input>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 259.89 Tm (Campo de entrada \(texto, email, checkbox...\).) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 242.89 Tm (<label>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 227.89 Tm (Rotulo associado a um campo.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 210.89 Tm (<textarea>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 195.89 Tm (Campo de texto de multiplas linhas.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 178.89 Tm (<select>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 163.89 Tm (Lista suspensa de opcoes.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 146.89 Tm (<option>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 131.89 Tm (Opcao dentro de um select.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 114.89 Tm (<button>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 99.89 Tm (Botao clicavel.) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 10 0 R >>
+endobj
+10 0 obj
+<< /Length 1552 >>
+stream
+BT /F2 14 Tf 1 0 0 1 56 781.89 Tm (Tabelas) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 764.89 Tm (<table>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 749.89 Tm (Tabela de dados.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 732.89 Tm (<tr>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 717.89 Tm (Linha da tabela.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 700.89 Tm (<th>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 685.89 Tm (Celula de cabecalho.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 668.89 Tm (<td>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 653.89 Tm (Celula de dados.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 636.89 Tm (<thead> <tbody> <tfoot>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 621.89 Tm (Agrupam cabecalho, corpo e rodape.) Tj ET
+BT /F2 14 Tf 1 0 0 1 56 600.89 Tm (Semantica \(HTML5\)) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 583.89 Tm (<header>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 568.89 Tm (Cabecalho de uma pagina ou secao.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 551.89 Tm (<nav>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 536.89 Tm (Bloco de navegacao/menu.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 519.89 Tm (<main>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 504.89 Tm (Conteudo principal da pagina.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 487.89 Tm (<section>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 472.89 Tm (Secao tematica do conteudo.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 455.89 Tm (<article>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 440.89 Tm (Conteudo independente e autossuficiente.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 423.89 Tm (<aside>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 408.89 Tm (Conteudo lateral/complementar.) Tj ET
+BT /F2 11 Tf 1 0 0 1 56 391.89 Tm (<footer>) Tj ET
+BT /F1 11 Tf 1 0 0 1 72 376.89 Tm (Rodape de uma pagina ou secao.) Tj ET
+endstream
+endobj
+xref
+0 11
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000135 00000 n 
+0000000232 00000 n 
+0000000334 00000 n 
+0000000476 00000 n 
+0000003228 00000 n 
+0000003370 00000 n 
+0000005960 00000 n 
+0000006103 00000 n 
+trailer
+<< /Size 11 /Root 1 0 R >>
+startxref
+7708
+%%EOF
