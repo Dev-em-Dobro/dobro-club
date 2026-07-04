@@ -185,7 +185,7 @@ export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS events (
   id text PRIMARY KEY, slug text NOT NULL, name text, status text,
   api_key_hash text NOT NULL, webhook_url text, created_at timestamptz,
-  week_starts_at timestamptz
+  week_starts_at timestamptz, onboarding_channel text
 );
 CREATE TABLE IF NOT EXISTS leads (
   id text PRIMARY KEY, event_id text NOT NULL, name text, email text, phone text,
@@ -216,6 +216,7 @@ CREATE TABLE IF NOT EXISTS content_items (
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS photo_url text;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS referrer_lead_id text;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS week_starts_at timestamptz;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS onboarding_channel text;
 CREATE INDEX IF NOT EXISTS idx_leads_event ON leads(event_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_leads_event_email ON leads (event_id, email) WHERE email IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_leads_event_phone ON leads (event_id, phone) WHERE phone IS NOT NULL;

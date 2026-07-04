@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Onboarding — quem manda o e-mail (dois casos)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'base',
+    themeVariables: { primaryColor:'#4F6EF7', primaryTextColor:'#fff', primaryBorderColor:'#3554D4', lineColor:'#6B7280' } });
+</script>
+<style>
+  :root{color-scheme:dark}
+  body{margin:0;background:#0f1117;color:#e5e7eb;font-family:Inter,sans-serif;line-height:1.6}
+  main{max-width:820px;margin:0 auto;padding:32px 20px}
+  h1{font-size:1.6rem} h2{font-size:1.1rem;margin-top:32px;color:#a5b4fc}
+  .mermaid{background:#fff;border-radius:12px;padding:20px;text-align:center;margin-top:12px}
+  .glossario b{color:#fff} footer{margin-top:40px;font-size:.8rem;color:#6b7280}
+</style></head>
+<body><main>
+  <h1>Onboarding — quem manda o e-mail (dois casos)</h1>
+
+  <h2>Caso 1 — Padrão: o sistema manda o e-mail</h2>
+  <div class="mermaid">
+%%{init: {'theme':'base','themeVariables':{'primaryColor':'#4F6EF7','primaryTextColor':'#fff','primaryBorderColor':'#3554D4','lineColor':'#6B7280','secondaryColor':'#F3F4F6','tertiaryColor':'#EEF2FF'}}}%%
+flowchart TD
+  A[Pessoa se inscreve] --> B[ActiveCampaign avisa o sistema]
+  B --> C[Sistema gera o link]
+  C --> D[Sistema envia o e-mail]
+  D --> E[Pessoa entra logada]
+  </div>
+
+  <h2>Caso 2 — ActiveCampaign: o ActiveCampaign manda o e-mail</h2>
+  <div class="mermaid">
+%%{init: {'theme':'base','themeVariables':{'primaryColor':'#4F6EF7','primaryTextColor':'#fff','primaryBorderColor':'#3554D4','lineColor':'#6B7280','secondaryColor':'#F3F4F6','tertiaryColor':'#EEF2FF'}}}%%
+flowchart TD
+  A[Pessoa se inscreve] --> B[ActiveCampaign avisa o sistema]
+  B --> C[Sistema gera o link]
+  C --> D[Sistema devolve o link]
+  D --> E[ActiveCampaign envia o e-mail]
+  E --> F[Pessoa entra logada]
+  </div>
+
+  <h2>Resumo</h2>
+  <p>Os dois casos começam igual: a pessoa se inscreve, o ActiveCampaign avisa o sistema e o sistema
+  gera o link de entrada. A diferença é só no e-mail: no caso padrão, o sistema manda o e-mail; no caso
+  ActiveCampaign, o sistema passa o link pro ActiveCampaign e é ele quem manda. Foi essa "chavinha" por
+  evento que a gente implementou — pra ninguém receber e-mail em dobro.</p>
+
+  <h2>Glossário</h2>
+  <div class="glossario">
+    <p><b>Canal (a chavinha)</b> — configuração de cada evento que decide quem manda o e-mail de entrada.</p>
+    <p><b>Link de entrada</b> — link mágico que já loga a pessoa sem senha.</p>
+    <p><b>ActiveCampaign</b> — ferramenta de marketing que guarda os contatos e dispara e-mails automáticos.</p>
+    <p><b>"Sistema avisa/devolve o link"</b> — o sistema entrega o link pro ActiveCampaign usar no e-mail dele.</p>
+  </div>
+  <footer>Gerado com a skill desenha-pra-mim</footer>
+</main></body></html>
