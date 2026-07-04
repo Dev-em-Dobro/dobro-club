@@ -93,6 +93,13 @@ await emit(eventId, leadId, type, data);
 > `live`/`recording`); sinal distinto de `content.opened` para lead score/streak diferenciarem presença
 > em live (ao vivo × gravação). Estado da live é derivado do horário, não persistido. Novo tipo coordenado.
 
+> **Nota (8.18 — Lead Score, consumidor):** o lead score é a **8.8** do épico, agora em `lib/score.ts`.
+> **Consome** esta tabela (não emite): o score de um lead num evento = soma de `peso[type] × contagem`
+> dos seus `engagement_events`. Pesos são **versionados no código** (`WEIGHTS` em `lib/score.ts`;
+> tipo sem peso ⇒ 0); o score é **derivado na leitura** (não persistido). Consulta por `X-Api-Key`:
+> `GET /api/events/[eventId]/leads/[leadId]/score` (score+breakdown) e `GET /api/events/[eventId]/scores`
+> (ranking desc). Ao adicionar um tipo novo à tabela acima, avalie dar-lhe um peso em `WEIGHTS`.
+
 Novos tipos: adicione a linha nesta tabela **no mesmo PR** que passa a emiti-los.
 
 **Webhook de saída:** cada `emit()` também faz `POST {event.webhookUrl}` com
