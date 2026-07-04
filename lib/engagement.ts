@@ -13,7 +13,10 @@ export type EngagementType =
   // Emitido pela Story 8.12 quando o lead abre o hub pré-evento.
   | "hub.viewed"
   // Emitido pela Story 8.14 quando o lead abre um item de conteúdo dia-1.
-  | "content.opened";
+  | "content.opened"
+  // Emitido pela Story 8.17 quando o lead abre uma live de aquecimento assistível
+  // (data: { liveId, state }, state ∈ 'live' | 'recording'). Consumido por lead score / streak.
+  | "live.opened";
 
 /**
  * Emissor compartilhado de eventos de engajamento.

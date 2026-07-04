@@ -77,6 +77,7 @@ await emit(eventId, leadId, type, data);
 | `referral.signup`  | **8.3** (na geração via indicação) | **8.7** (ranking/premiação) | `{ referrerLeadId }` |
 | `hub.viewed`       | **8.12** (acesso ao hub pré-evento) | 8.8/8.9 | `{ phase }` |
 | `content.opened`   | **8.14** (abrir conteúdo dia-1) | 8.8/8.9 | `{ kind, itemId }` |
+| `live.opened`      | **8.17** (abrir live de aquecimento) | 8.8/8.9 (lead score, streak) | `{ liveId, state }` |
 
 > **Nota (8.3):** a atribuição de indicação acontece no momento da geração do ingresso, então a
 > **8.3 emite** `referral.signup`; a **8.7 consome** para ranking/premiação. Ajuste acordado entre os
@@ -87,6 +88,10 @@ await emit(eventId, leadId, type, data);
 
 > **Nota (8.14):** abrir um item de conteúdo dia-1 emite `content.opened` (`kind` =
 > `lesson`/`doc`/`codequest`, `itemId`); alimenta o lead scoring (8.8). Novo tipo coordenado.
+
+> **Nota (8.17):** abrir uma live de aquecimento assistível emite `live.opened` (`liveId`, `state` =
+> `live`/`recording`); sinal distinto de `content.opened` para lead score/streak diferenciarem presença
+> em live (ao vivo × gravação). Estado da live é derivado do horário, não persistido. Novo tipo coordenado.
 
 Novos tipos: adicione a linha nesta tabela **no mesmo PR** que passa a emiti-los.
 

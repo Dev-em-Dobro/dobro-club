@@ -214,6 +214,18 @@ CREATE TABLE IF NOT EXISTS content_items (
   created_at timestamptz,
   release_offset_days int
 );
+CREATE TABLE IF NOT EXISTS lives (
+  id text PRIMARY KEY,
+  event_id text NOT NULL,
+  title text NOT NULL,
+  description text,
+  starts_at timestamptz,
+  duration_min int,
+  stream_url text,
+  recording_url text,
+  position int,
+  created_at timestamptz
+);
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS photo_url text;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS referrer_lead_id text;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS week_starts_at timestamptz;
@@ -227,6 +239,7 @@ CREATE INDEX IF NOT EXISTS idx_engevents_lead  ON engagement_events(lead_id);
 CREATE INDEX IF NOT EXISTS idx_engevents_type  ON engagement_events(event_id, type);
 CREATE INDEX IF NOT EXISTS idx_content_event ON content_items(event_id);
 CREATE INDEX IF NOT EXISTS idx_content_event_kind ON content_items(event_id, kind);
+CREATE INDEX IF NOT EXISTS idx_lives_event ON lives(event_id);
 `;
 
 export async function initSchema(): Promise<void> {
