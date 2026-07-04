@@ -100,6 +100,13 @@ await emit(eventId, leadId, type, data);
 > `GET /api/events/[eventId]/leads/[leadId]/score` (score+breakdown) e `GET /api/events/[eventId]/scores`
 > (ranking desc). Ao adicionar um tipo novo à tabela acima, avalie dar-lhe um peso em `WEIGHTS`.
 
+> **Nota (8.19 — Streak & Badges, consumidor):** a gamificação (`lib/gamification.ts`) **consome** esta
+> tabela + o lead score (8.18), sem emitir. **Streak** = dias de calendário consecutivos (fuso do evento,
+> UTC−3) com ≥1 `content.opened`/`live.opened` (`{current, longest}`, tolerância hoje/ontem). **Badges** =
+> catálogo de regras fixas versionado (`BADGES`), derivado/não persistido. Superfícies: participante em
+> `GET /api/evento/gamificacao` (`dc_session`) e consumo em `GET /api/events/[eventId]/leads/[leadId]/gamification`
+> (`X-Api-Key`). "Dia ativo = assistiu ≥10%" é evolução futura (exige um evento de progresso).
+
 Novos tipos: adicione a linha nesta tabela **no mesmo PR** que passa a emiti-los.
 
 **Webhook de saída:** cada `emit()` também faz `POST {event.webhookUrl}` com
