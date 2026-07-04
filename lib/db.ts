@@ -211,12 +211,14 @@ CREATE TABLE IF NOT EXISTS content_items (
   is_gift boolean NOT NULL,
   release_at timestamptz,
   position int,
-  created_at timestamptz
+  created_at timestamptz,
+  release_offset_days int
 );
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS photo_url text;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS referrer_lead_id text;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS week_starts_at timestamptz;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS onboarding_channel text;
+ALTER TABLE content_items ADD COLUMN IF NOT EXISTS release_offset_days int;
 CREATE INDEX IF NOT EXISTS idx_leads_event ON leads(event_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_leads_event_email ON leads (event_id, email) WHERE email IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_leads_event_phone ON leads (event_id, phone) WHERE phone IS NOT NULL;

@@ -12,6 +12,8 @@ interface Item {
   description: string | null;
   isGift: boolean;
   releaseAt: string | null;
+  /** Story 8.16: data prevista de liberação para ESTE lead (aula = entrada + offset). */
+  releaseForLeadAt: string | null;
   available: boolean;
 }
 
@@ -142,7 +144,7 @@ export default function ConteudoDia1() {
                         </span>
                         {futureLocked ? (
                           <span className="content-locked">
-                            🔒 {releaseLabel(item.releaseAt)}
+                            🔒 {releaseLabel(item.releaseForLeadAt ?? item.releaseAt)}
                           </span>
                         ) : (
                           <button

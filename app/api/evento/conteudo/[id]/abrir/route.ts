@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { verifySession, COOKIE } from "@/lib/auth/session";
 import { getLeadById } from "@/lib/leads";
 import { emit, hasCompletedSurvey } from "@/lib/engagement";
-import { getContentItem, isReleased } from "@/lib/content";
+import { getContentItem, isItemReleasedForLead, releaseForLeadAt } from "@/lib/content";
 
 /**
  * Abre um item de conteúdo dia-1 (Story 8.14): revalida gate + liberação **no
@@ -32,9 +32,14 @@ export async function POST(
   if (!(await hasCompletedSurvey(lead.id))) {
     return NextResponse.json({ error: "gated" }, { status: 403 });
   }
-  if (!isReleased(item)) {
+  // Story 8.16: aula libera por-lead (entrada + offset); demais kinds por calendário.
+  if (!isItemReleasedForLead(item, lead.createdAt)) {
     return NextResponse.json(
-      { error: "not_released", releaseAt: item.releaseAt },
+      {
+        error: "not_released",
+        releaseAt: item.releaseAt,
+        releaseForLeadAt: releaseForLeadAt(item, lead.createdAt),
+      },
       { status: 403 },
     );
   }

@@ -64,8 +64,9 @@ describe("POST /api/evento/conteudo/[id]/abrir", () => {
     expect((await res.json()).error).toBe("gated");
   });
 
-  it("403 not_released quando a data ainda não chegou", async () => {
-    const it0 = await item({ releaseAt: iso(5 * DAY) });
+  it("403 not_released quando a data de calendário ainda não chegou (doc)", async () => {
+    // 8.16: calendário vale p/ docs/CodeQuest; aulas usam drip por-lead (offset × entrada).
+    const it0 = await item({ kind: "doc", releaseAt: iso(5 * DAY) });
     const l = await lead(true);
     const res = await abrir(it0.id, { leadId: l.id, eventId: "evt_1" });
     expect(res.status).toBe(403);
