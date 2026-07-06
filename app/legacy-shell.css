@@ -227,11 +227,17 @@ img.sprite { image-rendering: pixelated; display: block; }
 .window-body p { margin: 0; color: var(--text-muted); font-size: 14px; }
 
 /* ==========================================================================
-   Bottom navigation — pixel arcade toolbar
+   Navegação persistente — pixel arcade toolbar
+   Barra inferior fixa em todas as larguras.
    ========================================================================== */
-.bottom-nav {
-  position: sticky;
+.event-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
   bottom: 0;
+  z-index: 40;
+  max-width: 560px;
+  margin: 0 auto;
   display: flex;
   gap: 2px;
   padding: 8px 6px;
@@ -240,7 +246,8 @@ img.sprite { image-rendering: pixelated; display: block; }
   border-top: 3px solid var(--purple-deep);
   backdrop-filter: blur(6px);
 }
-.bottom-nav button {
+.event-nav button,
+.event-nav a {
   flex: 1;
   min-width: 0;
   min-height: 52px;
@@ -257,17 +264,24 @@ img.sprite { image-rendering: pixelated; display: block; }
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.2px;
+  text-decoration: none;
   cursor: default;
 }
-.bottom-nav button .ico { font-size: 18px; line-height: 1; filter: saturate(1.1); }
-.bottom-nav button .lbl {
+.event-nav a { cursor: pointer; }
+.event-nav .ico { font-size: 18px; line-height: 1; filter: saturate(1.1); }
+.event-nav .lbl {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.bottom-nav button:disabled { opacity: 0.55; }
-.bottom-nav button:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+.event-nav button:disabled { opacity: 0.55; }
+.event-nav button:focus-visible,
+.event-nav a:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+
+/* Reserva espaço no rodapé para a barra fixa não cobrir o conteúdo. */
+.event-viewport,
+.event-content { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
 
 /* ==========================================================================
    Animations
@@ -766,7 +780,7 @@ img.sprite { image-rendering: pixelated; display: block; }
 }
 .hub-gate .scroll-hint { margin-bottom: 10px; }
 
-/* Conteúdo dia-1 (Story 8.14) — aulas / docs / CodeQuest */
+/* Conteúdo dia-1 (Story 8.14) — aulas / docs */
 .content-screen {
   width: 100%;
   max-width: 640px;
@@ -781,6 +795,14 @@ img.sprite { image-rendering: pixelated; display: block; }
   margin-bottom: 18px;
 }
 .content-title { font-size: 22px; font-weight: 800; }
+.content-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.content-nav .tf-recover { margin: 0; white-space: nowrap; }
 .content-section { margin-bottom: 26px; }
 .content-section-title {
   font-size: 13px;
@@ -850,6 +872,33 @@ img.sprite { image-rendering: pixelated; display: block; }
 }
 
 /* Story 8.19 — Streak e badges (gamificação) */
+/* Chip de streak no HUD: indicador minimalista que leva ao painel. */
+.streak-chip {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  background: var(--bg-elevated);
+  border: 2px solid var(--magenta);
+  border-radius: 999px;
+  text-decoration: none;
+  line-height: 1;
+}
+.streak-chip-flame { font-size: 16px; }
+.streak-chip-count {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--yellow);
+}
+/* Estado "apagado": sem sessão, o chip vira convite discreto. */
+.streak-chip-off {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+  border-color: var(--purple-deep);
+}
 .streak-hero {
   display: flex;
   flex-direction: column;
