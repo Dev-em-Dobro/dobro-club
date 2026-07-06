@@ -41,9 +41,11 @@ export async function GET(req: NextRequest) {
     isGift: item.isGift,
     releaseAt: item.releaseAt,
     releaseOffsetDays: item.releaseOffsetDays,
+    isFree: item.isFree,
     releaseForLeadAt: authenticated ? releaseForLeadAt(item, entryDate, now) : null,
     available:
-      authenticated && surveyAnswered && isItemReleasedForLead(item, entryDate, now),
+      item.isFree ||
+      (authenticated && surveyAnswered && isItemReleasedForLead(item, entryDate, now)),
   }));
 
   return NextResponse.json({ authenticated, surveyAnswered, items });
