@@ -18,7 +18,7 @@ const dados = {
   slug: "piloto",
   name: "Ana Souza",
   email: "ana@x.com",
-  phone: "5584991153472",
+  phone: "5511999999999",
 };
 
 beforeEach(async () => {

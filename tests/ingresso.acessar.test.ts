@@ -24,9 +24,9 @@ describe("POST /api/e/[slug]/ingresso/acessar", () => {
     await createOrGetLead("evt_1", {
       name: "Maria",
       email: null,
-      phone: "5584991153472",
+      phone: "5511999999999",
     });
-    const res = await post("piloto", { phone: "+55 84 99115-3472" }); // formatado
+    const res = await post("piloto", { phone: "+55 11 99999-9999" }); // formatado
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.ok).toBe(true);
@@ -46,7 +46,7 @@ describe("POST /api/e/[slug]/ingresso/acessar", () => {
   });
 
   it("404 para slug inexistente", async () => {
-    expect((await post("nao-existe", { phone: "5584991153472" })).status).toBe(
+    expect((await post("nao-existe", { phone: "5511999999999" })).status).toBe(
       404,
     );
   });
