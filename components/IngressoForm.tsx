@@ -215,7 +215,7 @@ export default function IngressoForm({ slug = DEFAULT_SLUG }: { slug?: string })
       </button>
 
       <p className="tf-recover">
-        Já se inscreveu? <a href="/recuperar-link">Recuperar meu link</a>
+        Já se inscreveu? <a href="/recuperar-ingresso">Recuperar meu ingresso</a>
       </p>
     </form>
   );

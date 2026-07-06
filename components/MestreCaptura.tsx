@@ -151,7 +151,7 @@ export default function MestreCaptura() {
       setInput("");
       setEmail(value);
       void (async () => {
-        await botSay(["E o seu WhatsApp com DDD? Ex.: 5584991153472"]);
+        await botSay(["E o seu WhatsApp com DDD? Ex.: 5511999999999"]);
         setStep("askPhone");
       })();
       return;
@@ -162,7 +162,7 @@ export default function MestreCaptura() {
       if (!isValidPhone(digits)) {
         pushMsg({ from: "user", text: value });
         setInput("");
-        void botSay(["Número estranho 🤔 Use DDI+DDD+número (só dígitos). Ex.: 5584991153472"]);
+        void botSay(["Número estranho 🤔 Use DDI+DDD+número (só dígitos). Ex.: 5511999999999"]);
         return;
       }
       pushMsg({ from: "user", text: digits });
@@ -224,7 +224,7 @@ export default function MestreCaptura() {
                 step === "askName"
                   ? "Seu nome"
                   : step === "askPhone"
-                    ? "5584991153472"
+                    ? "5511999999999"
                     : "voce@exemplo.com"
               }
               aria-label="Sua mensagem"

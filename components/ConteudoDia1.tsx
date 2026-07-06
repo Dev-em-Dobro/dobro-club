@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Kind = "lesson" | "doc" | "codequest";
+type Kind = "lesson" | "doc";
 
 interface Item {
   id: string;
@@ -27,7 +27,6 @@ const SELF = "/evento/conteudo";
 const SECTIONS: { kind: Kind; title: string; empty: string }[] = [
   { kind: "lesson", title: "Aulas de nivelamento", empty: "Aulas em breve." },
   { kind: "doc", title: "Materiais e presentes", empty: "Materiais em breve." },
-  { kind: "codequest", title: "CodeQuest", empty: "Acesso em breve." },
 ];
 
 function releaseLabel(iso: string | null): string {
@@ -91,11 +90,7 @@ export default function ConteudoDia1() {
 
   function ctaLabel(item: Item): string {
     if (item.available) {
-      return item.kind === "lesson"
-        ? "Assistir"
-        : item.kind === "codequest"
-          ? "Abrir CodeQuest ↗"
-          : "Abrir ↗";
+      return item.kind === "lesson" ? "Assistir" : "Abrir ↗";
     }
     if (!data?.authenticated) return "Passar pelo Mestre 🔒";
     if (!data?.surveyAnswered) return "Responder pesquisa 🔒";
@@ -111,15 +106,20 @@ export default function ConteudoDia1() {
     <main className="content-screen">
       <header className="content-head">
         <h1 className="content-title">Conteúdo do evento</h1>
-        <a className="tf-recover" href="/evento">
-          ← Voltar ao hub
-        </a>
+        <nav className="content-nav">
+          <a className="tf-recover" href="/evento/lives">
+            📡 Lives de aquecimento →
+          </a>
+          <a className="tf-recover" href="/evento">
+            ← Voltar ao hub
+          </a>
+        </nav>
       </header>
 
       {locked && (
         <p className="content-lock-note">
           🔒 Passe pelo Mestre do Evento e responda a pesquisa rápida para liberar
-          aulas, materiais e o CodeQuest.
+          aulas e materiais.
         </p>
       )}
 

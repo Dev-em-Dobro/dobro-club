@@ -56,7 +56,7 @@ export default function EventoHub() {
           <p className="scroll-text">
             Recupere seu link de acesso pelo telefone para continuar.
           </p>
-          <a className="btn scroll-cta" href="/recuperar-link">
+          <a className="btn scroll-cta" href="/recuperar-ingresso">
             Recuperar meu link →
           </a>
         </div>

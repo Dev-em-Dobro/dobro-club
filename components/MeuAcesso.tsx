@@ -20,7 +20,7 @@ export default function MeuAcesso() {
           <p className="scroll-text">
             Recupere seu link de acesso pelo telefone para continuar.
           </p>
-          <a className="btn scroll-cta" href="/recuperar-link">
+          <a className="btn scroll-cta" href="/recuperar-ingresso">
             Recuperar meu link →
           </a>
         </div>
@@ -43,7 +43,7 @@ export default function MeuAcesso() {
         </a>
         <p className="scroll-hint">
           Esqueceu? Recupere pelo telefone em{" "}
-          <a href="/recuperar-link">recuperar acesso</a>.
+          <a href="/recuperar-ingresso">recuperar acesso</a>.
         </p>
       </div>
       <a className="tf-recover" href={`/e/${EVENT_SLUG}`}>

@@ -1,19 +1,17 @@
 "use client";
 
 import { useAuth } from "./AuthContext";
-
-const NAV: Array<{ label: string; ico: string; href?: string }> = [
-  { label: "Aulas", ico: "📜" },
-  { label: "Comunidade", ico: "💬" },
-  { label: "Feed", ico: "🗞️" },
-  { label: "Ingresso", ico: "🎟️", href: "/meu-acesso" },
-  { label: "Indicações", ico: "🤝" },
-  { label: "Certificado", ico: "🏆" },
-];
+import { useGamificacao } from "./useGamificacao";
+import EventNav from "./EventNav";
 
 export default function EventHome() {
   const { loading, lead } = useAuth();
+  // Sem sessão o progresso não existe: o fetch fica desligado e o banner
+  // aparece "apagado" como convite a entrar.
+  const { data } = useGamificacao(!!lead);
   if (loading) return <main className="loading">Entrando…</main>;
+
+  const streak = data?.streak.current ?? 0;
 
   return (
     <div className="event-shell">
@@ -26,9 +24,21 @@ export default function EventHome() {
             Bem-vindo(a) à sua jornada <span className="twinkle">⟡</span>
           </p>
         </div>
+        <a
+          className={`streak-chip${lead ? "" : " streak-chip-off"}`}
+          href={lead ? "/evento/gamificacao" : "/recuperar-ingresso"}
+          aria-label={
+            lead ? `Sequência de ${streak} dia(s)` : "Entre para começar sua sequência"
+          }
+          title={lead ? "Ver meu progresso" : "Entre para começar sua sequência"}
+        >
+          <span className="streak-chip-flame" aria-hidden>🔥</span>
+          <span className="streak-chip-count">{streak}</span>
+        </a>
       </header>
 
       <main className="event-content">
+
         <section className="window">
           <div className="window-bar">
             <span>EVENTO</span>
@@ -49,25 +59,7 @@ export default function EventHome() {
         </section>
       </main>
 
-      <nav className="bottom-nav" aria-label="Navegação do evento">
-        {NAV.map(({ label, ico, href }) =>
-          href ? (
-            <a key={label} href={href}>
-              <span className="ico" aria-hidden="true">
-                {ico}
-              </span>
-              <span className="lbl">{label}</span>
-            </a>
-          ) : (
-            <button key={label} type="button" disabled>
-              <span className="ico" aria-hidden="true">
-                {ico}
-              </span>
-              <span className="lbl">{label}</span>
-            </button>
-          ),
-        )}
-      </nav>
+      <EventNav />
     </div>
   );
 }

@@ -109,9 +109,14 @@ export default function LivesAquecimento() {
     <main className="content-screen">
       <header className="content-head">
         <h1 className="content-title">Lives de aquecimento</h1>
-        <a className="tf-recover" href="/evento">
-          ← Voltar ao hub
-        </a>
+        <nav className="content-nav">
+          <a className="tf-recover" href="/evento/conteudo">
+            📜 Aulas e nivelamento →
+          </a>
+          <a className="tf-recover" href="/evento">
+            ← Voltar ao hub
+          </a>
+        </nav>
       </header>
 
       {locked && (

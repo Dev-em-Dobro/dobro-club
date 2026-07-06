@@ -1,34 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-interface Badge {
-  id: string;
-  name: string;
-  description: string;
-  criterion: string;
-  earned: boolean;
-}
-
-interface GamificacaoState {
-  streak: { current: number; longest: number };
-  badges: Badge[];
-}
+import { useGamificacao } from "./useGamificacao";
 
 export default function GamificacaoPainel() {
-  const [data, setData] = useState<GamificacaoState | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    fetch("/api/evento/gamificacao", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => active && (setData(d), setLoading(false)))
-      .catch(() => active && setLoading(false));
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data, loading } = useGamificacao();
 
   if (loading) return <main className="loading">Carregando…</main>;
   if (!data) return <main className="loading">Não foi possível carregar.</main>;
