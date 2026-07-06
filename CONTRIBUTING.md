@@ -77,6 +77,7 @@ await emit(eventId, leadId, type, data);
 | `referral.signup`  | **8.3** (na geração via indicação) | **8.7** (ranking/premiação) | `{ referrerLeadId }` |
 | `hub.viewed`       | **8.12** (acesso ao hub pré-evento) | 8.8/8.9 | `{ phase }` |
 | `content.opened`   | **8.14** (abrir conteúdo dia-1) | 8.8/8.9 | `{ kind, itemId }` |
+| `live.opened`      | **8.17** (abrir live de aquecimento) | 8.8/8.9 (lead score, streak) | `{ liveId, state }` |
 
 > **Nota (8.3):** a atribuição de indicação acontece no momento da geração do ingresso, então a
 > **8.3 emite** `referral.signup`; a **8.7 consome** para ranking/premiação. Ajuste acordado entre os
@@ -87,6 +88,24 @@ await emit(eventId, leadId, type, data);
 
 > **Nota (8.14):** abrir um item de conteúdo dia-1 emite `content.opened` (`kind` =
 > `lesson`/`doc`/`codequest`, `itemId`); alimenta o lead scoring (8.8). Novo tipo coordenado.
+
+> **Nota (8.17):** abrir uma live de aquecimento assistível emite `live.opened` (`liveId`, `state` =
+> `live`/`recording`); sinal distinto de `content.opened` para lead score/streak diferenciarem presença
+> em live (ao vivo × gravação). Estado da live é derivado do horário, não persistido. Novo tipo coordenado.
+
+> **Nota (8.18 — Lead Score, consumidor):** o lead score é a **8.8** do épico, agora em `lib/score.ts`.
+> **Consome** esta tabela (não emite): o score de um lead num evento = soma de `peso[type] × contagem`
+> dos seus `engagement_events`. Pesos são **versionados no código** (`WEIGHTS` em `lib/score.ts`;
+> tipo sem peso ⇒ 0); o score é **derivado na leitura** (não persistido). Consulta por `X-Api-Key`:
+> `GET /api/events/[eventId]/leads/[leadId]/score` (score+breakdown) e `GET /api/events/[eventId]/scores`
+> (ranking desc). Ao adicionar um tipo novo à tabela acima, avalie dar-lhe um peso em `WEIGHTS`.
+
+> **Nota (8.19 — Streak & Badges, consumidor):** a gamificação (`lib/gamification.ts`) **consome** esta
+> tabela + o lead score (8.18), sem emitir. **Streak** = dias de calendário consecutivos (fuso do evento,
+> UTC−3) com ≥1 `content.opened`/`live.opened` (`{current, longest}`, tolerância hoje/ontem). **Badges** =
+> catálogo de regras fixas versionado (`BADGES`), derivado/não persistido. Superfícies: participante em
+> `GET /api/evento/gamificacao` (`dc_session`) e consumo em `GET /api/events/[eventId]/leads/[leadId]/gamification`
+> (`X-Api-Key`). "Dia ativo = assistiu ≥10%" é evolução futura (exige um evento de progresso).
 
 Novos tipos: adicione a linha nesta tabela **no mesmo PR** que passa a emiti-los.
 

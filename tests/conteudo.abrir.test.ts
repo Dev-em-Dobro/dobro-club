@@ -64,8 +64,9 @@ describe("POST /api/evento/conteudo/[id]/abrir", () => {
     expect((await res.json()).error).toBe("gated");
   });
 
-  it("403 not_released quando a data ainda não chegou", async () => {
-    const it0 = await item({ releaseAt: iso(5 * DAY) });
+  it("403 not_released quando a data de calendário ainda não chegou (doc)", async () => {
+    // 8.16: calendário vale p/ docs; aulas usam drip por-lead (offset × entrada).
+    const it0 = await item({ kind: "doc", releaseAt: iso(5 * DAY) });
     const l = await lead(true);
     const res = await abrir(it0.id, { leadId: l.id, eventId: "evt_1" });
     expect(res.status).toBe(403);
@@ -96,12 +97,27 @@ describe("POST /api/evento/conteudo/[id]/abrir", () => {
     expect(data.resource).toBe("https://x/doc.pdf");
   });
 
-  it("codequest devolve external:true (US3)", async () => {
-    const it0 = await item({ kind: "codequest", title: "CodeQuest", resource: "https://codequest.x/entrar" });
-    const l = await lead(true);
-    const data = await (await abrir(it0.id, { leadId: l.id, eventId: "evt_1" })).json();
-    expect(data.kind).toBe("codequest");
-    expect(data.external).toBe(true);
-    expect(data.resource).toBe("https://codequest.x/entrar");
+  it("item free abre para visitante anônimo (sem sessão) e mede sem lead", async () => {
+    const it0 = await item({ isFree: true, resource: "https://youtube.com/embed/free" });
+    const res = await abrir(it0.id); // sem sessão
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.resource).toBe("https://youtube.com/embed/free");
+    const { rows } = await query(
+      "SELECT lead_id FROM engagement_events WHERE type = 'content.opened'",
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].lead_id).toBeNull();
+  });
+
+  it("item free ignora o gate da pesquisa (lead sem survey abre)", async () => {
+    const it0 = await item({ isFree: true, resource: "https://youtube.com/embed/free" });
+    const l = await lead(false); // NÃO respondeu a pesquisa
+    const res = await abrir(it0.id, { leadId: l.id, eventId: "evt_1" });
+    expect(res.status).toBe(200);
+    const { rows } = await query(
+      "SELECT lead_id FROM engagement_events WHERE type = 'content.opened'",
+    );
+    expect(rows[0].lead_id).toBe(l.id);
   });
 });

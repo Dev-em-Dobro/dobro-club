@@ -63,4 +63,18 @@ describe("POST /api/events/[eventId]/conteudo", () => {
     expect(items[0].kind).toBe("lesson");
     expect(items[0].resource).toContain("/embed/");
   });
+
+  // Story 8.16 (US2): curadoria define o offset de liberação por aula.
+  it("201 persiste releaseOffsetDays quando informado", async () => {
+    const res = await post("evt_1", { ...lesson, releaseOffsetDays: 2 }, "k");
+    expect(res.status).toBe(201);
+    const items = await listContentItems("evt_1");
+    expect(items[0].releaseOffsetDays).toBe(2);
+  });
+
+  it("201 sem releaseOffsetDays ⇒ persiste null (tratado como 0 no cálculo)", async () => {
+    await post("evt_1", lesson, "k");
+    const items = await listContentItems("evt_1");
+    expect(items[0].releaseOffsetDays).toBeNull();
+  });
 });

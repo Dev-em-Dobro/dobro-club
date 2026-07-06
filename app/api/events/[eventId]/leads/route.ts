@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getEvent, verifyApiKey } from "@/lib/events";
+import { getEvent, verifyApiKey, platformSendsOnboardingEmail } from "@/lib/events";
 import { validateLeadInput } from "@/lib/validate";
 import { createOrGetLead } from "@/lib/leads";
 import { buildMagicLink } from "@/lib/auth/token";
@@ -29,16 +29,20 @@ export async function POST(
   const { lead, isNew } = await createOrGetLead(event.id, value);
   const magicLink = buildMagicLink(lead.token);
   if (isNew) {
-    sendMagicLinkEmail({
-      to: lead.email,
-      name: lead.name,
-      eventName: event.name,
-      magicLink,
-    })
-      .then((r) => {
-        if (!r.sent) console.warn("magic-link email not sent:", r.reason);
+    // Story 8.15: no canal 'active-campaign' o onboarding é enviado pela ActiveCampaign (que consome o
+    // webhook e guarda o magicLink); a plataforma NÃO envia o e-mail para não duplicar. Webhook sai sempre.
+    if (platformSendsOnboardingEmail(event)) {
+      sendMagicLinkEmail({
+        to: lead.email,
+        name: lead.name,
+        eventName: event.name,
+        magicLink,
       })
-      .catch((e) => console.error("magic-link email error:", e));
+        .then((r) => {
+          if (!r.sent) console.warn("magic-link email not sent:", r.reason);
+        })
+        .catch((e) => console.error("magic-link email error:", e));
+    }
     fireInscriptionWebhook(event, lead, magicLink)
       .then((r) => {
         if (!r.sent) console.warn("inscription webhook not sent:", r.reason);

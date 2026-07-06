@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jornada do participante — captação, evento e lead score</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: true, theme: 'base',
+    themeVariables: { primaryColor:'#4F6EF7', primaryTextColor:'#fff', primaryBorderColor:'#3554D4', lineColor:'#6B7280' } });
+</script>
+<style>
+  :root{color-scheme:dark}
+  body{margin:0;background:#0f1117;color:#e5e7eb;font-family:Inter,sans-serif;line-height:1.6}
+  main{max-width:820px;margin:0 auto;padding:32px 20px}
+  h1{font-size:1.6rem} h2{font-size:1.1rem;margin-top:32px;color:#a5b4fc}
+  .mermaid{background:#fff;border-radius:12px;padding:20px;text-align:center;margin-top:12px}
+  .glossario b{color:#fff} footer{margin-top:40px;font-size:.8rem;color:#6b7280}
+</style></head>
+<body><main>
+  <h1>Jornada do participante — captação, evento e lead score</h1>
+
+  <h2>1. Linha do tempo (visão geral)</h2>
+  <div class="mermaid">
+%%{init: {'theme':'base','themeVariables':{'primaryColor':'#4F6EF7','primaryTextColor':'#fff','primaryBorderColor':'#3554D4','lineColor':'#6B7280','secondaryColor':'#F3F4F6','tertiaryColor':'#EEF2FF'}}}%%
+timeline
+  title Jornada do participante
+  Captação (20 dias) : Anúncio no Meta : Página de captura : ActiveCampaign : Nivelamento na plataforma
+  Evento : CPL1 + Live HTML : CPL2 + Live CSS : CPL3 + Live JS
+  Encerramento (domingo) : Live final : Abre o carrinho
+  Pós-evento : Pontuação no painel : Comercial prospecta
+  </div>
+
+  <h2>2. Estrutura do evento (a semana)</h2>
+  <div class="mermaid">
+%%{init: {'theme':'base','themeVariables':{'primaryColor':'#4F6EF7','primaryTextColor':'#fff','primaryBorderColor':'#3554D4','lineColor':'#6B7280','secondaryColor':'#F3F4F6','tertiaryColor':'#EEF2FF'}}}%%
+flowchart TD
+  A[CPL1 gravada] --> B[Live HTML]
+  B --> C[CPL2 gravada]
+  C --> D[Live CSS]
+  D --> E[CPL3 gravada]
+  E --> F[Live JS]
+  F --> G[Live de encerramento]
+  G --> H[Abre o carrinho]
+  </div>
+
+  <h2>3. Onde mora a pontuação do lead</h2>
+  <div class="mermaid">
+%%{init: {'theme':'base','themeVariables':{'primaryColor':'#4F6EF7','primaryTextColor':'#fff','primaryBorderColor':'#3554D4','lineColor':'#6B7280','secondaryColor':'#F3F4F6','tertiaryColor':'#EEF2FF'}}}%%
+flowchart LR
+  AC[ActiveCampaign] -->|Só traz contatos| P[Plataforma do evento]
+  P -->|Mede engajamento| M[Cálculo da pontuação]
+  M --> PA[Painel do produtor]
+  M --> EX[Lista em CSV]
+  PA --> C[Comercial prospecta]
+  EX --> C
+  </div>
+
+  <h2>4. Como o lead engaja (e vira pontos)</h2>
+  <div class="mermaid">
+%%{init: {'theme':'base','themeVariables':{'primaryColor':'#4F6EF7','primaryTextColor':'#fff','primaryBorderColor':'#3554D4','lineColor':'#6B7280','secondaryColor':'#F3F4F6','tertiaryColor':'#EEF2FF'}}}%%
+flowchart TD
+  L((Lead)) -->|+1| A[Abre nivelamento/material]
+  L -->|+2| B[Responde pesquisa]
+  L -->|+3| C[Assiste CPL gravada]
+  L -->|+5| D[Entra na live ao vivo]
+  L -->|x1.5| E[Assiste a live inteira]
+  L -->|+10| F[Presente no encerramento]
+  A --> P[Pontuação do lead]
+  B --> P
+  C --> P
+  D --> P
+  E --> P
+  F --> P
+  P --> T[Quente, morno ou frio]
+  </div>
+  <p><em>Cada ação vale pontos, e quanto mais perto da compra, mais pesa. Assistir a live inteira
+  conta extra. A soma vira a pontuação, que classifica o lead em quente, morno ou frio. Os valores
+  (+1, +5, +10…) são um ponto de partida a calibrar com dados reais.</em></p>
+
+  <h2>Resumo</h2>
+  <p>São 20 dias de aquecimento (anúncio no Meta → cadastro no ActiveCampaign → nivelamento na
+  plataforma). Depois vem o evento, alternando aulas gravadas e lives (HTML, CSS, JS), até a live de
+  encerramento no domingo, que abre as vendas. Tudo que o participante faz é medido e vira uma
+  pontuação de "quão quente" ele está — que fica num painel dentro da própria plataforma. Depois do
+  evento, o comercial usa esse painel (ou uma lista exportada) pra falar primeiro com os mais quentes.</p>
+
+  <h2>Glossário</h2>
+  <div class="glossario">
+    <p><b>Captação</b> — período (≈20 dias) de atrair e aquecer inscritos antes do evento começar.</p>
+    <p><b>CPL</b> — aula gravada de pré-lançamento; prepara o público antes da oferta.</p>
+    <p><b>Carrinho</b> — abertura oficial das vendas, na live de encerramento.</p>
+    <p><b>ActiveCampaign</b> — ferramenta externa dos contatos; aqui só serve pra trazer os inscritos pra plataforma.</p>
+    <p><b>Pontuação do lead</b> — nota de "quão quente" o contato está, calculada e mostrada dentro da plataforma.</p>
+  </div>
+  <footer>Gerado com a skill desenha-pra-mim</footer>
+</main></body></html>

@@ -33,7 +33,7 @@ export async function POST(
   const phone = normalizePhone(typeof body.phone === "string" ? body.phone : "");
   if (!isValidPhone(phone)) {
     return NextResponse.json(
-      { error: "telefone inválido — use DDI + DDD + número, ex.: 5584991153472" },
+      { error: "telefone inválido — use DDI + DDD + número, ex.: 5511999999999" },
       { status: 400 },
     );
   }

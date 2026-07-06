@@ -79,10 +79,12 @@ describe("GET /api/evento/conteudo", () => {
     expect(data.items[0].available).toBe(false);
   });
 
-  it("drip: item com releaseAt futuro fica available:false mesmo com gate", async () => {
+  it("drip por calendário (doc): releaseAt futuro fica available:false mesmo com gate", async () => {
+    // 8.16: o drip por data de calendário passa a valer para docs/CodeQuest; para
+    // aulas (kind='lesson') vale o drip por-lead (ver evento.conteudo.progressivo.test.ts).
     await createContentItem("evt_1", {
-      kind: "lesson",
-      title: "Aula futura",
+      kind: "doc",
+      title: "Doc futuro",
       resource: "x",
       releaseAt: iso(5 * DAY),
     });

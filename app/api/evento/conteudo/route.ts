@@ -3,7 +3,7 @@ import { verifySession, COOKIE } from "@/lib/auth/session";
 import { getLeadById } from "@/lib/leads";
 import { getEventBySlug } from "@/lib/events";
 import { hasCompletedSurvey } from "@/lib/engagement";
-import { listContentItems, isReleased } from "@/lib/content";
+import { listContentItems, isItemReleasedForLead, releaseForLeadAt } from "@/lib/content";
 
 const DEFAULT_SLUG = process.env.NEXT_PUBLIC_EVENT_SLUG || "piloto";
 
@@ -30,6 +30,9 @@ export async function GET(req: NextRequest) {
     ? await hasCompletedSurvey(lead!.id)
     : false;
   const now = new Date();
+  // Story 8.16: aulas liberam por-lead (entrada + offset); demais kinds seguem o
+  // calendário da 8.14. `releaseForLeadAt` alimenta o rótulo "em breve" por lead.
+  const entryDate = authenticated ? lead!.createdAt : null;
   const items = (await listContentItems(eventId)).map((item) => ({
     id: item.id,
     kind: item.kind,
@@ -37,7 +40,12 @@ export async function GET(req: NextRequest) {
     description: item.description,
     isGift: item.isGift,
     releaseAt: item.releaseAt,
-    available: authenticated && surveyAnswered && isReleased(item, now),
+    releaseOffsetDays: item.releaseOffsetDays,
+    isFree: item.isFree,
+    releaseForLeadAt: authenticated ? releaseForLeadAt(item, entryDate, now) : null,
+    available:
+      item.isFree ||
+      (authenticated && surveyAnswered && isItemReleasedForLead(item, entryDate, now)),
   }));
 
   return NextResponse.json({ authenticated, surveyAnswered, items });

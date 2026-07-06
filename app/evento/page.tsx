@@ -1,10 +1,6 @@
-import { AuthProvider } from "@/components/AuthContext";
 import EventoHub from "@/components/EventoHub";
 
+// AuthProvider vem do layout de /evento.
 export default function EventoPage() {
-  return (
-    <AuthProvider>
-      <EventoHub />
-    </AuthProvider>
-  );
+  return <EventoHub />;
 }

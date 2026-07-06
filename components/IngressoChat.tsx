@@ -182,7 +182,7 @@ export default function IngressoChat({
     setStep("askPhone");
     await botSay([
       "Por último, me passa seu WhatsApp com DDI + DDD 📱",
-      "É por ele que você recupera seu acesso depois. Formato: 55 + DDD + número. Ex.: 5584991153472",
+      "É por ele que você recupera seu acesso depois. Formato: 55 + DDD + número. Ex.: 5511999999999",
     ]);
   }
 
@@ -304,7 +304,7 @@ export default function IngressoChat({
         pushMsg({ from: "user", text: value });
         setInput("");
         void botSay([
-          "Hmm, esse número não parece certo. Use DDI + DDD + número (só números). Ex.: 5584991153472 👇",
+          "Hmm, esse número não parece certo. Use DDI + DDD + número (só números). Ex.: 5511999999999 👇",
         ]);
         return;
       }
@@ -415,7 +415,7 @@ export default function IngressoChat({
                   : step === "askName"
                     ? "Seu nome e sobrenome"
                     : step === "askPhone"
-                      ? "5584991153472"
+                      ? "5511999999999"
                       : "voce@exemplo.com"
               }
               autoComplete={
