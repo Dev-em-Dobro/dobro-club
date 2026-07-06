@@ -105,9 +105,10 @@ async function seedDemoEvent(): Promise<void> {
 }
 
 /**
- * Semeia conteúdo dia-1 mockado (Story 8.14) no fallback dev: 3 aulas de
- * nivelamento com embed do YouTube, sem data de liberação (liberadas ao passar o
- * gate da pesquisa). Substituir/expandir depois via ingestão admin
+ * Semeia conteúdo dia-1 (Story 8.14) no fallback dev: as aulas de aquecimento,
+ * sem data de liberação (liberadas ao passar o gate da pesquisa). O embed
+ * (`resource`) ainda está vazio — preencher quando cada aula tiver o vídeo.
+ * Substituir/expandir depois via ingestão admin
  * (`POST /api/events/[eventId]/conteudo`). Dados NÃO persistem entre reinícios.
  */
 async function seedDemoContent(): Promise<void> {
@@ -116,23 +117,44 @@ async function seedDemoContent(): Promise<void> {
     ["evt_demo"],
   );
   if (rows[0]) return;
+  // `resource` vazio = embed a definir (o botão "Assistir" fica inerte até lá).
   const lessons = [
-    { id: "cont_demo_1", title: "Nivelamento 1 — Lógica de programação", vid: "JHhUSTsZj7Q" },
-    { id: "cont_demo_2", title: "Nivelamento 2 — Primeiros passos", vid: "_DDvXYJ6Az4" },
-    { id: "cont_demo_3", title: "Nivelamento 3 — Praticando", vid: "uxln1hT_Ev4" },
+    {
+      id: "cont_intro",
+      title: "Introdução — como usar bem a plataforma",
+      description: "Comece por aqui: como aproveitar ao máximo a plataforma e o evento.",
+      gift: false,
+      free: true, // aberta: sem gate do Mestre/pesquisa (a introdução não trava).
+    },
+    {
+      id: "cont_vscode",
+      title: "VSCode para iniciantes",
+      description: "Instale e configure o VSCode do zero para começar a programar.",
+      gift: false,
+      free: false,
+    },
+    {
+      id: "cont_github",
+      title: "Presente do GitHub",
+      description: "Como resgatar e usar o presente do GitHub.",
+      gift: true,
+      free: false,
+    },
   ];
   let position = 1;
   for (const l of lessons) {
     await query(
       `INSERT INTO content_items
-         (id, event_id, kind, title, description, resource, is_gift, release_at, position, created_at)
-       VALUES ($1,$2,'lesson',$3,$4,$5,false,NULL,$6,$7)`,
+         (id, event_id, kind, title, description, resource, is_gift, is_free, release_at, position, created_at)
+       VALUES ($1,$2,'lesson',$3,$4,$5,$6,$7,NULL,$8,$9)`,
       [
         l.id,
         "evt_demo",
         l.title,
-        "Aula de nivelamento (mock)",
-        `https://www.youtube.com/embed/${l.vid}`,
+        l.description,
+        "",
+        l.gift,
+        l.free,
         position++,
         new Date().toISOString(),
       ],
@@ -155,12 +177,17 @@ async function seedDemoContent(): Promise<void> {
   );
 }
 
+// Token FIXO do lead de preview no fallback dev: o magic link fica estável entre
+// reinícios (`/entrar/dev-preview`), então dá pra guardar/reusar sem caçar o
+// console. Só existe no banco em memória (dev); nunca toca produção.
+const DEV_PREVIEW_TOKEN = "dev-preview";
+
 /**
  * Atalho de preview no fallback dev (Story 8.14): cria um lead demo **já com a
- * pesquisa respondida** (`survey.completed`) e imprime o magic link no console.
- * Abrir o link loga a sessão e libera o gate — permite ver `/evento/conteudo`
- * sem depender da pesquisa (8.2, ainda em Express). Imports dinâmicos evitam
- * ciclo (leads/engagement importam este módulo). Só roda no dev sem DB.
+ * pesquisa respondida** (`survey.completed`), fixa seu token em `DEV_PREVIEW_TOKEN`
+ * e imprime o magic link (estável) no console. Abrir o link loga a sessão e
+ * libera o gate — permite ver `/evento/conteudo` sem depender da pesquisa (8.2,
+ * ainda em Express). Imports dinâmicos evitam ciclo. Só roda no dev sem DB.
  */
 async function seedDevPreviewLead(): Promise<void> {
   try {
@@ -173,8 +200,13 @@ async function seedDevPreviewLead(): Promise<void> {
       phone: null,
     });
     if (isNew) await emit("evt_demo", lead.id, "survey.completed", {});
+    // Fixa o token para o link não mudar a cada boot.
+    await query("UPDATE leads SET token = $1 WHERE id = $2", [
+      DEV_PREVIEW_TOKEN,
+      lead.id,
+    ]);
     console.warn(
-      `[db] dev preview — abra este link para ver o conteúdo (gate liberado):\n      ${buildMagicLink(lead.token)}\n      depois vá para /evento/conteudo`,
+      `[db] dev preview — link ESTÁVEL para ver o conteúdo (gate liberado):\n      ${buildMagicLink(DEV_PREVIEW_TOKEN)}\n      depois vá para /evento/conteudo`,
     );
   } catch (e) {
     console.warn(`[db] seedDevPreviewLead falhou: ${(e as Error).message}`);
@@ -212,7 +244,8 @@ CREATE TABLE IF NOT EXISTS content_items (
   release_at timestamptz,
   position int,
   created_at timestamptz,
-  release_offset_days int
+  release_offset_days int,
+  is_free boolean
 );
 CREATE TABLE IF NOT EXISTS lives (
   id text PRIMARY KEY,
@@ -231,6 +264,7 @@ ALTER TABLE leads ADD COLUMN IF NOT EXISTS referrer_lead_id text;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS week_starts_at timestamptz;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS onboarding_channel text;
 ALTER TABLE content_items ADD COLUMN IF NOT EXISTS release_offset_days int;
+ALTER TABLE content_items ADD COLUMN IF NOT EXISTS is_free boolean;
 CREATE INDEX IF NOT EXISTS idx_leads_event ON leads(event_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_leads_event_email ON leads (event_id, email) WHERE email IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_leads_event_phone ON leads (event_id, phone) WHERE phone IS NOT NULL;

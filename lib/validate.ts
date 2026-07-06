@@ -15,7 +15,7 @@ export function normalizePhone(raw: string): string {
   return raw.replace(/\D/g, "");
 }
 
-/** DDI + DDD + número (ex.: 5584991153472). 12–13 dígitos cobre fixo/celular BR. */
+/** DDI + DDD + número (ex.: 5511999999999). 12–13 dígitos cobre fixo/celular BR. */
 export function isValidPhone(phone: string): boolean {
   return /^\d{12,13}$/.test(phone);
 }
