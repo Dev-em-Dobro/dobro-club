@@ -11,7 +11,7 @@ interface Access {
   magicLink: string;
 }
 
-export default function RecuperarLinkPage() {
+export default function RecuperarIngressoPage() {
   const [phone, setPhone] = useState("");
   const [access, setAccess] = useState<Access | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +22,7 @@ export default function RecuperarLinkPage() {
     setError(null);
     const digits = onlyDigits(phone);
     if (!isValidPhone(digits)) {
-      setError("Use DDI + DDD + número (só números). Ex.: 5584991153472");
+      setError("Use DDI + DDD + número (só números). Ex.: 5511999999999");
       return;
     }
     setSubmitting(true);
@@ -56,9 +56,9 @@ export default function RecuperarLinkPage() {
     <main className="ticket-screen ticket-screen--center">
       <header className="ticket-head">
         <p className="ticket-kicker px">
-          <span className="twinkle">⟡</span> Perdeu o acesso?
+          <span className="twinkle">⟡</span> Perdeu o ingresso?
         </p>
-        <h1 className="ticket-title px">Recuperar meu link</h1>
+        <h1 className="ticket-title px">Recuperar meu ingresso</h1>
         <p className="ticket-sub">
           Informe o telefone que você usou para gerar o ingresso.
         </p>
@@ -69,7 +69,7 @@ export default function RecuperarLinkPage() {
           <h1 className="scroll-title">
             {access.name
               ? `Boas-vindas de volta, ${access.name}!`
-              : "Achamos seu acesso!"}
+              : "Achamos seu ingresso!"}
           </h1>
           <p className="scroll-text">Aqui está o seu link para acessar o evento:</p>
           <a className="btn scroll-cta" href={access.magicLink}>
@@ -88,14 +88,14 @@ export default function RecuperarLinkPage() {
               inputMode="numeric"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="5584991153472"
+              placeholder="5511999999999"
               autoComplete="tel"
               required
             />
           </label>
           {error && <p className="tf-error">{error}</p>}
           <button type="submit" className="btn tf-submit" disabled={submitting}>
-            {submitting ? "Buscando…" : "Recuperar meu link"}
+            {submitting ? "Buscando…" : "Recuperar meu ingresso"}
           </button>
           <p className="tf-recover">
             Ainda não tem ingresso? <a href="/ingresso">Gerar agora</a>
