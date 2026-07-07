@@ -14,6 +14,7 @@
     "build:legacy": "vite build",
     "start:legacy": "npm run build:legacy && node server.js",
     "db:init": "node scripts/db-init.js",
+    "db:configure-ac": "node scripts/configure-ac-event.js",
     "seed": "node scripts/seed.js",
     "link": "node scripts/magic-link.js",
     "test": "vitest run",
