@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import pg from "pg";
 
 const { Pool } = pg;
@@ -89,17 +90,23 @@ async function seedDemoEvent(): Promise<void> {
   const slug = process.env.NEXT_PUBLIC_EVENT_SLUG || "piloto";
   const { rows } = await query("SELECT id FROM events WHERE slug = $1", [slug]);
   if (rows[0]) return;
+  const devApiKey = process.env.DOBRO_DEV_API_KEY || "ac-piloto-dobro-2026";
+  const apiKeyHash = crypto
+    .createHash("sha256")
+    .update(devApiKey)
+    .digest("hex");
   await query(
-    `INSERT INTO events (id, slug, name, status, api_key_hash, webhook_url, created_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+    `INSERT INTO events (id, slug, name, status, api_key_hash, webhook_url, created_at, onboarding_channel)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
     [
       "evt_demo",
       slug,
       "Semana do Zero ao Programador Contratado",
       "active",
-      "dev-fallback",
+      apiKeyHash,
       null,
       new Date().toISOString(),
+      "active-campaign",
     ],
   );
 }

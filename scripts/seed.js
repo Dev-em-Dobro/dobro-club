@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import "./load-env.js";
 import { query, initSchema } from '../server/db.js';
 import { hashApiKey } from '../server/events.js';
 
