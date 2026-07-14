@@ -3,18 +3,23 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
 } from "react";
 import { useSearchParams } from "next/navigation";
+import { ingressoCopy } from "@/lib/copy/ingresso";
 
 const CLOUD = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
 const PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "";
 const DEFAULT_SLUG = process.env.NEXT_PUBLIC_EVENT_SLUG || "piloto";
+const DEFAULT_EVENT_NAME = "Semana do Zero ao Programador Contratado";
 const WHATSAPP_GROUP =
   process.env.NEXT_PUBLIC_WHATSAPP_GROUP_URL || "https://chat.whatsapp.com/";
 
+// Silêncio tolerado numa etapa antes do Mestre cutucar ("vamos continuar?").
+const IDLE_NUDGE_MS = 60_000;
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB (FR-015)
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"]; // FR-015
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -36,7 +41,6 @@ type Step =
   | "confirmPhone"
   | "generating"
   | "confirmTicket"
-  | "ticketProblem"
   | "done";
 
 interface Msg {
@@ -50,19 +54,38 @@ interface Msg {
 interface TicketResult {
   leadId: string;
   isNew: boolean;
-  magicLink: string;
-  ticket: { imageUrl: string; qrValue: string; shareUrl: string };
+  /** Ausente no evento `ticket-only`: lá não existe acesso a entregar. */
+  magicLink?: string;
+  ticket: {
+    imageUrl: string;
+    downloadUrl: string;
+    qrValue: string;
+    shareUrl: string;
+  };
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * `ticketOnly` (evento pago): o fluxo termina no próprio ingresso — baixar e
+ * compartilhar. Sem link de acesso, sem grupo de WhatsApp, sem recuperação.
+ */
 export default function IngressoChat({
   slug = DEFAULT_SLUG,
+  eventName,
+  ticketOnly = false,
 }: {
   slug?: string;
+  eventName?: string | null;
+  ticketOnly?: boolean;
 }) {
   const params = useSearchParams();
   const ref = params.get("ref");
+  const event = eventName || DEFAULT_EVENT_NAME;
+  const copy = useMemo(
+    () => ingressoCopy({ eventName: event, ticketOnly }),
+    [event, ticketOnly],
+  );
 
   const [messages, setMessages] = useState<Msg[]>([]);
   const [step, setStep] = useState<Step>("greet");
@@ -74,12 +97,15 @@ export default function IngressoChat({
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<TicketResult | null>(null);
+  const [shared, setShared] = useState(false);
 
   const idRef = useRef(0);
   const mounted = useRef(true);
   const logRef = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const started = useRef(false);
+  /** Etapas onde a cutucada de inatividade já foi dada (não repete). */
+  const nudged = useRef(new Set<Step>());
 
   useEffect(() => {
     mounted.current = true;
@@ -120,83 +146,87 @@ export default function IngressoChat({
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    void botSay([
-      "Opa! Seja bem-vindo(a) à Semana do Zero ao Programador Contratado 🎮",
-      "Digite INGRESSO para começar 🎟️",
-    ]);
-  }, [botSay]);
+    void botSay(copy.greet);
+  }, [botSay, copy]);
+
+  // Cutucada de inatividade: a pessoa parou no meio do funil (roteiro do
+  // lançamento clássico). Dispara UMA vez por etapa de espera, nunca no fim.
+  useEffect(() => {
+    if (typing || step === "generating" || step === "done") return;
+    if (nudged.current.has(step)) return;
+
+    const timer = setTimeout(() => {
+      if (!mounted.current) return;
+      nudged.current.add(step);
+      void botSay(copy.idleNudge);
+    }, IDLE_NUDGE_MS);
+
+    return () => clearTimeout(timer);
+  }, [step, typing, botSay, copy]);
 
   // ---- transições -------------------------------------------------------
 
   async function startFlow() {
     setStep("prepared");
-    await botSay([
-      "Chegou a hora de receber seu Ingresso individual e personalizado pra participar da Semana do Zero ao Programador Contratado!",
-      "Preparado(a)? 🚀",
-    ]);
+    await botSay(copy.start);
   }
 
   async function goAskName() {
     setStep("askName");
-    await botSay([
-      "Agora, digite o seu NOME e um SOBRENOME pra colocarmos no seu ingresso.",
-      "Exemplo: Fulano de Tal",
-    ]);
+    await botSay(copy.askName);
   }
 
   async function goConfirmName(value: string) {
     setStep("confirmName");
-    await botSay([value.toUpperCase(), "Confirma pra mim se seu nome está correto 👇"]);
+    await botSay(copy.confirmName(value));
   }
 
   async function goAskPhoto() {
     setStep("askPhoto");
-    await botSay([
-      "Preciso de uma foto sua para gerar seu ingresso pessoal.",
-      "Você prefere enviar uma foto sua aqui ou continuar sem foto mesmo?",
-    ]);
+    await botSay(copy.askPhoto);
   }
 
   async function goUploadPhoto() {
     setStep("uploadPhoto");
     await botSay([
-      "Boa! Me envie uma foto quadrada (formato 1:1), com o seu rosto bem centralizado.",
+      ...copy.uploadPhoto,
       { text: "Assim aqui 👇", imageUrl: "/sprites/happy-mage.png", example: true },
     ]);
   }
 
   async function goAskEmail() {
     setStep("askEmail");
-    await botSay([
-      "Maravilha, seu ingresso já está sendo emitido…",
-      "Enquanto isso, me fala qual o seu melhor e-mail 👇",
-    ]);
+    await botSay(copy.askEmail);
   }
 
   async function goConfirmEmail(value: string) {
     setStep("confirmEmail");
-    await botSay(["É este e-mail mesmo?", `👉 ${value}`]);
+    await botSay(copy.confirmEmail(value));
   }
 
   async function goAskPhone() {
     setStep("askPhone");
-    await botSay([
-      "Por último, me passa seu WhatsApp com DDI + DDD 📱",
-      "É por ele que você recupera seu acesso depois. Formato: 55 + DDD + número. Ex.: 5511999999999",
-    ]);
+    await botSay(copy.askPhone);
   }
 
   async function goConfirmPhone(value: string) {
     setStep("confirmPhone");
-    await botSay(["É esse número mesmo?", `👉 ${value}`]);
+    await botSay(copy.confirmPhone(value));
   }
 
-  async function generate() {
+  /**
+   * `reissue` = o participante disse que o ingresso saiu errado. A reemissão manda
+   * a foto que sobrou da verificação (ou nenhuma) e o servidor regrava, mesmo o
+   * lead já existindo — por isso não pode cair na fala de "você já tem ingresso".
+   */
+  async function generate(
+    opts: { reissue?: boolean; photoUrl?: string | null } = {},
+  ) {
+    const reissue = opts.reissue === true;
+    const photo = "photoUrl" in opts ? opts.photoUrl : photoUrl;
+
     setStep("generating");
-    await botSay([
-      "⚠️ Aguarde enquanto estamos produzindo o seu ingresso…",
-      "(Pode demorar um pouquinho, pois temos muitas requisições ao mesmo tempo.)",
-    ]);
+    if (!reissue) await botSay(copy.generating);
     try {
       const res = await fetch(`/api/e/${encodeURIComponent(slug)}/ingresso`, {
         method: "POST",
@@ -205,8 +235,9 @@ export default function IngressoChat({
           name: name.trim(),
           email: email.trim(),
           phone: phone || undefined,
-          photoUrl: photoUrl || undefined,
+          photoUrl: photo || undefined,
           ref: ref || undefined,
+          reissue: reissue || undefined,
           consent: true,
         }),
       });
@@ -218,23 +249,32 @@ export default function IngressoChat({
         await botSay([
           (Array.isArray(data.errors) && data.errors.join(", ")) ||
             data.error ||
-            "Ops, algo deu errado ao gerar seu ingresso.",
-          "Vamos tentar de novo? Confirme seu e-mail 👇",
+            copy.genericError,
+          copy.retryAfterError,
         ]);
         setStep("confirmEmail");
         return;
       }
       if (!mounted.current) return;
       setResult(data);
+
+      // Quem já tinha ingresso (mesmo e-mail/telefone) não reconfirma nada: a vaga
+      // já é dela — entrega o ingresso e vai direto pro fecho.
+      if (!data.isNew && !reissue) {
+        setStep("done");
+        await botSay([
+          { imageUrl: data.ticket.imageUrl },
+          ...copy.alreadyHasTicket,
+        ]);
+        return;
+      }
+
       setStep("confirmTicket");
-      await botSay([
-        { imageUrl: data.ticket.imageUrl },
-        "Seu ingresso foi emitido corretamente?",
-      ]);
+      await botSay([{ imageUrl: data.ticket.imageUrl }, copy.askTicketOk]);
     } catch {
       await botSay([
         "Falha de conexão ao gerar o ingresso 😕",
-        "Confirme seu e-mail para tentarmos de novo 👇",
+        copy.retryAfterError,
       ]);
       setStep("confirmEmail");
     }
@@ -242,17 +282,145 @@ export default function IngressoChat({
 
   async function finish() {
     setStep("done");
-    await botSay([
-      "Maravilha! Te esperamos na primeira aula do evento, na terça-feira, às 20h (horário de Brasília). ✨",
-      "No dia, você receberá o link da aula com antecedência, no grupo de WhatsApp.",
-    ]);
+    await botSay(copy.finish);
   }
 
-  async function ticketProblem() {
-    setStep("ticketProblem");
+  // ---- baixar / compartilhar (fim do fluxo ticket-only) ------------------
+
+  function downloadTicket() {
+    if (!result) return;
+    // `downloadUrl` já responde como anexo (fl_attachment); o atributo `download`
+    // cobre o fallback local, que é da mesma origem.
+    const a = document.createElement("a");
+    a.href = result.ticket.downloadUrl;
+    a.download = "meu-ingresso.png";
+    a.rel = "noopener";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  /**
+   * WhatsApp é o único canal com compartilhamento pré-preenchido pela web
+   * (`wa.me?text=`): abre a conversa com a mensagem e o link já escritos. O link
+   * leva ao gerador com `?ref=`, e o preview do WhatsApp mostra o ingresso —
+   * a `og:image` da página é montada a partir do `ref` (ver a page do gerador).
+   */
+  function shareOnWhatsApp() {
+    if (!result) return;
+    const msg = `${shareText()}\n${result.ticket.shareUrl}`;
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(msg)}`,
+      "_blank",
+      "noopener",
+    );
+  }
+
+  /**
+   * O Instagram NÃO aceita post pré-preenchido pela web (não existe URL que abra
+   * o app já com imagem/legenda — só o SDK nativo faz isso). O caminho possível é
+   * o do próprio Instagram: a imagem no rolo da câmera e o post feito no app.
+   * Então baixamos o ingresso e abrimos o Stories; no celular, a folha nativa do
+   * botão "Compartilhar" também lista o Instagram já com a imagem anexada.
+   */
+  async function shareOnInstagram() {
+    if (!result) return;
+    // No mobile, o share nativo com arquivo entrega o ingresso direto ao app.
+    const file = await ticketAsFile();
+    if (file && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ text: shareText(), files: [file] });
+        return;
+      } catch (e) {
+        if ((e as Error).name === "AbortError") return;
+        // segue para o caminho baixar + abrir o app
+      }
+    }
+    downloadTicket();
     await botSay([
-      "Sem problema! Vamos gerar de novo pra você 👇",
+      "Salvei seu ingresso na galeria 📲 Agora é só abrir o Instagram e postar nos Stories!",
     ]);
+    window.open("https://www.instagram.com/", "_blank", "noopener");
+  }
+
+  function shareText(): string {
+    return `Garanti meu ingresso pra ${event}! 🎟️`;
+  }
+
+  /** A imagem como File, quando o navegador aceita compartilhar arquivos (mobile). */
+  async function ticketAsFile(): Promise<File | null> {
+    if (!result) return null;
+    try {
+      const res = await fetch(result.ticket.imageUrl);
+      if (!res.ok) return null;
+      const blob = await res.blob();
+      return new File([blob], "meu-ingresso.png", {
+        type: blob.type || "image/png",
+      });
+    } catch {
+      return null; // CORS/rede — cai no compartilhamento por link
+    }
+  }
+
+  /** "Mais opções": folha nativa do sistema (Stories, Telegram, X…) ou copiar o link. */
+  async function shareTicket() {
+    if (!result) return;
+    const text = shareText();
+    const url = result.ticket.shareUrl;
+
+    try {
+      const file = await ticketAsFile();
+      if (file && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ text, files: [file] });
+        return;
+      }
+      if (navigator.share) {
+        await navigator.share({ title: event, text, url });
+        return;
+      }
+    } catch (e) {
+      // Cancelar a folha de compartilhamento não é erro — não vira "copiado".
+      if ((e as Error).name === "AbortError") return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    } catch {
+      await botSay([`Copie e compartilhe este link 👉 ${url}`]);
+    }
+  }
+
+  /** A URL do ingresso (Cloudinary) renderiza mesmo? É o "verifica o Cloudinary". */
+  function imageLoads(url: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  }
+
+  /**
+   * "Não, saiu errado": o sistema verifica a imagem no Cloudinary e reemite sem
+   * perguntar mais nada. Quando a imagem não carrega, o suspeito é o overlay da
+   * foto (formato/URL que a transformação não aceita) — reemite com o avatar
+   * padrão, que sempre renderiza, em vez de repetir o mesmo erro.
+   */
+  async function ticketProblem() {
+    setStep("generating");
+    await botSay(copy.ticketProblem);
+
+    const rendered = result ? await imageLoads(result.ticket.imageUrl) : false;
+    const dropPhoto = !rendered && !!photoUrl;
+
+    if (dropPhoto) {
+      setPhotoUrl(null);
+      await botSay(copy.reissuedWithoutPhoto);
+    }
+
+    await generate({ reissue: true, photoUrl: dropPhoto ? null : photoUrl });
   }
 
   // ---- handlers de input ------------------------------------------------
@@ -274,7 +442,7 @@ export default function IngressoChat({
       if (value.split(/\s+/).length < 2) {
         pushMsg({ from: "user", text: value });
         setInput("");
-        void botSay(["Preciso do NOME e do SOBRENOME 🙂 Ex.: Fulano de Tal"]);
+        void botSay(copy.nameIncomplete);
         return;
       }
       pushMsg({ from: "user", text: value });
@@ -288,7 +456,7 @@ export default function IngressoChat({
       if (!EMAIL_RE.test(value)) {
         pushMsg({ from: "user", text: value });
         setInput("");
-        void botSay(["Hmm, esse e-mail não parece válido. Pode digitar de novo? 👇"]);
+        void botSay(copy.invalidEmail);
         return;
       }
       pushMsg({ from: "user", text: value });
@@ -303,9 +471,7 @@ export default function IngressoChat({
       if (!isValidPhone(digits)) {
         pushMsg({ from: "user", text: value });
         setInput("");
-        void botSay([
-          "Hmm, esse número não parece certo. Use DDI + DDD + número (só números). Ex.: 5511999999999 👇",
-        ]);
+        void botSay(copy.invalidPhone);
         return;
       }
       pushMsg({ from: "user", text: digits });
@@ -320,18 +486,14 @@ export default function IngressoChat({
     if (!file) return;
     if (!ACCEPTED.includes(file.type)) {
       pushMsg({ from: "user", text: "📎 (foto)" });
-      await botSay([
-        "Esse formato não rola (use JPEG, PNG ou WebP). Vou seguir com o avatar padrão 👍",
-      ]);
+      await botSay(copy.photoRejected);
       setPhotoUrl(null);
       void goAskEmail();
       return;
     }
     if (file.size > MAX_BYTES) {
       pushMsg({ from: "user", text: "📎 (foto)" });
-      await botSay([
-        "Essa imagem passou de 5MB. Vou seguir com o avatar padrão 👍",
-      ]);
+      await botSay(copy.photoTooBig);
       setPhotoUrl(null);
       void goAskEmail();
       return;
@@ -355,7 +517,7 @@ export default function IngressoChat({
       setPhotoUrl(data.secure_url);
     } catch {
       setPhotoUrl(null);
-      await botSay(["Não consegui enviar sua foto agora — seguimos com o avatar padrão 👍"]);
+      await botSay(copy.photoFailed);
     } finally {
       if (mounted.current) setUploading(false);
     }
@@ -448,7 +610,7 @@ export default function IngressoChat({
             options={[
               { label: "ENVIAR MINHA FOTO 📸", onClick: () => void goUploadPhoto() },
               {
-                label: "CONTINUAR SEM FOTO",
+                label: "MANTER AVATAR PADRÃO",
                 variant: "ghost",
                 onClick: () => {
                   setPhotoUrl(null);
@@ -521,16 +683,41 @@ export default function IngressoChat({
           />
         );
 
-      case "ticketProblem":
-        return <QuickReplies options={[{ label: "GERAR DE NOVO 🔄", onClick: () => void generate() }]} />;
-
+      // Fim do funil: os dois eventos entregam o ingresso (baixar/compartilhar).
+      // O clássico soma o grupo de WhatsApp e o link de acesso ao ambiente.
       case "done":
         return (
           <div className="chat-quick chat-quick--stack">
-            <a className="btn chat-cta" href={WHATSAPP_GROUP} target="_blank" rel="noreferrer">
-              Entrar no grupo de WhatsApp 💬
-            </a>
-            {result && (
+            {!ticketOnly && (
+              <a className="btn chat-cta" href={WHATSAPP_GROUP} target="_blank" rel="noreferrer">
+                Entrar no grupo de WhatsApp 💬
+              </a>
+            )}
+            <button type="button" className="quick-btn" onClick={shareOnWhatsApp}>
+              CHAMAR A GALERA NO WHATSAPP 💬
+            </button>
+            <button
+              type="button"
+              className="quick-btn"
+              onClick={() => void shareOnInstagram()}
+            >
+              POSTAR NO INSTAGRAM 📸
+            </button>
+            <button
+              type="button"
+              className="quick-btn quick-btn--ghost"
+              onClick={downloadTicket}
+            >
+              Baixar meu ingresso ⬇️
+            </button>
+            <button
+              type="button"
+              className="quick-btn quick-btn--ghost"
+              onClick={() => void shareTicket()}
+            >
+              {shared ? "Link copiado! ✓" : "Mais opções 🔗"}
+            </button>
+            {!ticketOnly && result?.magicLink && (
               <a className="chat-access" href={result.magicLink}>
                 Guarde seu link de acesso ao evento →
               </a>
