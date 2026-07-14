@@ -47,6 +47,7 @@ async function createPool(): Promise<pg.Pool> {
     globalForDb.__dobroPool = new MemPool() as unknown as pg.Pool;
     await initSchema();
     await seedDemoEvent();
+    await seedTicketOnlyEvent();
     await seedDemoContent();
     await seedDevPreviewLead();
     console.warn(
@@ -108,6 +109,31 @@ async function seedDemoEvent(): Promise<void> {
       new Date().toISOString(),
       "active-campaign",
     ],
+  );
+}
+
+/**
+ * Semeia um evento `ticket-only` (evento pago) no fallback dev, para dar pra abrir
+ * o gerador em `/e/pago-demo/ingresso` sem banco externo. Em produção o evento é
+ * criado pelo `npm run event:create`. Dados NÃO persistem entre reinícios.
+ */
+async function seedTicketOnlyEvent(): Promise<void> {
+  const slug = "pago-demo";
+  const { rows } = await query("SELECT id FROM events WHERE slug = $1", [slug]);
+  if (rows[0]) return;
+  await query(
+    `INSERT INTO events (id, slug, name, status, api_key_hash, webhook_url, created_at, mode)
+     VALUES ($1,$2,$3,'active',$4,NULL,$5,'ticket-only')`,
+    [
+      "evt_pago_demo",
+      slug,
+      "Evento Pago (demo)",
+      crypto.createHash("sha256").update("pago-demo-key").digest("hex"),
+      new Date().toISOString(),
+    ],
+  );
+  console.warn(
+    `[db] dev — gerador de ingresso do evento pago (ticket-only): http://localhost:3000/e/${slug}/ingresso`,
   );
 }
 
@@ -224,7 +250,7 @@ export const SCHEMA = `
 CREATE TABLE IF NOT EXISTS events (
   id text PRIMARY KEY, slug text NOT NULL, name text, status text,
   api_key_hash text NOT NULL, webhook_url text, created_at timestamptz,
-  week_starts_at timestamptz, onboarding_channel text
+  week_starts_at timestamptz, onboarding_channel text, mode text
 );
 CREATE TABLE IF NOT EXISTS leads (
   id text PRIMARY KEY, event_id text NOT NULL, name text, email text, phone text,
@@ -270,6 +296,7 @@ ALTER TABLE leads ADD COLUMN IF NOT EXISTS photo_url text;
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS referrer_lead_id text;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS week_starts_at timestamptz;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS onboarding_channel text;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS mode text;
 ALTER TABLE content_items ADD COLUMN IF NOT EXISTS release_offset_days int;
 ALTER TABLE content_items ADD COLUMN IF NOT EXISTS is_free boolean;
 CREATE INDEX IF NOT EXISTS idx_leads_event ON leads(event_id);

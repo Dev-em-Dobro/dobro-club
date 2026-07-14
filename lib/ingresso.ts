@@ -3,19 +3,32 @@
 
 import type { Lead } from "./leads";
 import type { EventRow } from "./events";
-import { buildTicketImageUrl, qrValue, shareUrl } from "./ticket";
+import {
+  buildTicketDownloadUrl,
+  buildTicketImageUrl,
+  qrValue,
+  shareUrl,
+  type TicketEvent,
+} from "./ticket";
 
 export interface Ticket {
   imageUrl: string;
+  /** Mesma imagem, servida como anexo — é o alvo do botão "baixar ingresso". */
+  downloadUrl: string;
   qrValue: string;
   shareUrl: string;
 }
 
-export function buildTicket(lead: Lead): Ticket {
+/**
+ * `event` define para onde o QR/compartilhar apontam (o gerador daquele evento).
+ * Omitido ⇒ evento completo, com o gerador em `/ingresso`.
+ */
+export function buildTicket(lead: Lead, event?: TicketEvent | null): Ticket {
   return {
     imageUrl: buildTicketImageUrl(lead),
-    qrValue: qrValue(lead),
-    shareUrl: shareUrl(lead),
+    downloadUrl: buildTicketDownloadUrl(lead),
+    qrValue: qrValue(lead, event),
+    shareUrl: shareUrl(lead, event),
   };
 }
 

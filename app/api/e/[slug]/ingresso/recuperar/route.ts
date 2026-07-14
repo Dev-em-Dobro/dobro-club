@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getEventBySlug } from "@/lib/events";
+import { getEventBySlug, isTicketOnly } from "@/lib/events";
 import { getLeadByEmail } from "@/lib/leads";
 import { buildMagicLink } from "@/lib/auth/token";
 import { sendMagicLinkEmail } from "@/lib/email";
@@ -29,6 +29,10 @@ export async function POST(
   const { slug } = await ctx.params;
   const event = await getEventBySlug(slug);
   if (!event) {
+    return NextResponse.json({ error: "evento não encontrado" }, { status: 404 });
+  }
+  // Evento "só ingresso" não tem acesso a recuperar: a rota não existe para ele.
+  if (isTicketOnly(event)) {
     return NextResponse.json({ error: "evento não encontrado" }, { status: 404 });
   }
 

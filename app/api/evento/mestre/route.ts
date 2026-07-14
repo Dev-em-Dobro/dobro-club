@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getEventBySlug } from "@/lib/events";
+import { getEventBySlug, isTicketOnly } from "@/lib/events";
 import { validateLeadInput } from "@/lib/validate";
 import { createOrGetLead } from "@/lib/leads";
 import {
@@ -22,6 +22,11 @@ export async function POST(req: NextRequest) {
 
   const event = await getEventBySlug(slug);
   if (!event) {
+    return NextResponse.json({ error: "evento não encontrado" }, { status: 404 });
+  }
+  // O `slug` vem do cliente: sem esta guarda, bastaria mandar o slug do evento
+  // pago aqui para ganhar uma sessão nele. Evento "só ingresso" não loga ninguém.
+  if (isTicketOnly(event)) {
     return NextResponse.json({ error: "evento não encontrado" }, { status: 404 });
   }
 

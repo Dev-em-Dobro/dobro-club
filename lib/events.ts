@@ -16,7 +16,16 @@ export interface EventRow {
    * `'platform'`/`null`/qualquer outro valor ⇒ comportamento padrão (a plataforma envia o e-mail).
    */
   onboardingChannel: string | null;
+  /**
+   * Modo do evento: `'ticket-only'` ⇒ o evento é **só o gerador de ingresso** (uso no evento pago,
+   * onde a audiência já comprou). Sem hub, sem magic link exposto, sem recuperação de acesso — o
+   * único link que circula é o do gerador (`/e/<slug>/ingresso`) e o lead só é gravado no banco.
+   * `null`/`'full'`/qualquer outro valor ⇒ evento completo (comportamento do piloto).
+   */
+  mode: string | null;
 }
+
+export const MODE_TICKET_ONLY = "ticket-only";
 
 export function hashApiKey(key: string): string {
   return crypto.createHash("sha256").update(String(key)).digest("hex");
@@ -25,7 +34,8 @@ export function hashApiKey(key: string): string {
 const SELECT_EVENT = `SELECT id, slug, name, status,
         api_key_hash AS "apiKeyHash", webhook_url AS "webhookUrl",
         week_starts_at AS "weekStartsAt",
-        onboarding_channel AS "onboardingChannel"
+        onboarding_channel AS "onboardingChannel",
+        mode
    FROM events`;
 
 export async function getEvent(eventId: string): Promise<EventRow | null> {
@@ -62,4 +72,15 @@ export function platformSendsOnboardingEmail(
   event: Pick<EventRow, "onboardingChannel"> | null,
 ): boolean {
   return (event?.onboardingChannel ?? "platform") !== "active-campaign";
+}
+
+/**
+ * Evento em modo "só ingresso" (evento pago). Nele o participante já é cliente: a plataforma não
+ * manda e-mail, não devolve magic link e não oferece recuperação de acesso — quem gera o ingresso
+ * leva a imagem (baixar/compartilhar) e o lead fica registrado no banco. Default = evento completo.
+ */
+export function isTicketOnly(
+  event: Pick<EventRow, "mode"> | null | undefined,
+): boolean {
+  return event?.mode === MODE_TICKET_ONLY;
 }
