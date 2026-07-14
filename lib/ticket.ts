@@ -14,6 +14,7 @@
 // a URL de transformação compõe foto + nome (coordenadas abaixo assumem 608×1080).
 
 import type { Lead } from "./leads";
+import { isTicketOnly, type EventRow } from "./events";
 
 const CLOUD = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
 const TEMPLATE = process.env.NEXT_PUBLIC_CLOUDINARY_TICKET_TEMPLATE || "";
@@ -55,18 +56,37 @@ function baseUrl(): string {
   );
 }
 
+export type TicketEvent = Pick<EventRow, "slug" | "mode">;
+
+/**
+ * Caminho público do gerador de ingresso. O evento completo vive em `/ingresso`
+ * (slug fixado por env). O evento `ticket-only` não tem hub nem env próprio: o
+ * link que circula é o do gerador daquele slug (`/e/<slug>/ingresso`).
+ */
+export function ingressoPath(event?: TicketEvent | null): string {
+  return event && isTicketOnly(event)
+    ? `/e/${encodeURIComponent(event.slug)}/ingresso`
+    : "/ingresso";
+}
+
 /**
  * URL de convite pública embutida no QR e no botão compartilhar. Leva OUTRA
- * pessoa à tela de geração, atribuindo a indicação ao dono (`?ref=<leadId>`).
- * **Nunca** contém o token de sessão do dono (SC-006).
+ * pessoa à tela de geração **do mesmo evento**, atribuindo a indicação ao dono
+ * (`?ref=<leadId>`). **Nunca** contém o token de sessão do dono (SC-006).
  */
-export function qrValue(lead: Pick<Lead, "id">): string {
-  return `${baseUrl()}/ingresso?ref=${encodeURIComponent(lead.id)}`;
+export function qrValue(
+  lead: Pick<Lead, "id">,
+  event?: TicketEvent | null,
+): string {
+  return `${baseUrl()}${ingressoPath(event)}?ref=${encodeURIComponent(lead.id)}`;
 }
 
 /** Alias semântico: o botão "compartilhar" usa a mesma URL pública do QR. */
-export function shareUrl(lead: Pick<Lead, "id">): string {
-  return qrValue(lead);
+export function shareUrl(
+  lead: Pick<Lead, "id">,
+  event?: TicketEvent | null,
+): string {
+  return qrValue(lead, event);
 }
 
 // Cloudinary embute o overlay de uma imagem remota via `l_fetch:<base64url>`.
@@ -136,4 +156,23 @@ export function buildTicketImageUrl(
 
   const transform = layers.length ? `${layers.join("/")}/` : "";
   return `https://res.cloudinary.com/${CLOUD}/image/upload/${transform}${TEMPLATE}.png`;
+}
+
+const CLOUDINARY_UPLOAD = "/image/upload/";
+
+/**
+ * Mesma imagem do ingresso, servida como **download** em vez de exibição. No
+ * Cloudinary isso é a flag `fl_attachment` (responde com `Content-Disposition:
+ * attachment`), que é o que faz o botão "baixar" salvar o arquivo mesmo sendo
+ * outra origem — o atributo `download` do `<a>` é ignorado cross-origin. No
+ * fallback local o template é da mesma origem, então a URL já basta.
+ */
+export function buildTicketDownloadUrl(
+  lead: Pick<Lead, "name" | "photoUrl">,
+): string {
+  const url = buildTicketImageUrl(lead);
+  const at = url.indexOf(CLOUDINARY_UPLOAD);
+  if (!url.startsWith("https://res.cloudinary.com/") || at === -1) return url;
+  const cut = at + CLOUDINARY_UPLOAD.length;
+  return `${url.slice(0, cut)}fl_attachment:ingresso/${url.slice(cut)}`;
 }
