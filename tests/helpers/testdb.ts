@@ -22,6 +22,8 @@ export interface SeedEventOptions {
   weekStartsAt?: string | null;
   /** Canal de onboarding (Story 8.15): `'active-campaign'` suprime o e-mail da plataforma; ausente ⇒ padrão. */
   onboardingChannel?: string | null;
+  /** Modo do evento: `'ticket-only'` ⇒ só o gerador de ingresso (evento pago); ausente ⇒ evento completo. */
+  mode?: string | null;
 }
 
 export async function seedEvent(overrides: SeedEventOptions = {}) {
@@ -34,11 +36,12 @@ export async function seedEvent(overrides: SeedEventOptions = {}) {
     webhookUrl: null as string | null,
     weekStartsAt: null as string | null,
     onboardingChannel: null as string | null,
+    mode: null as string | null,
     ...overrides,
   };
   await query(
-    `INSERT INTO events (id, slug, name, status, api_key_hash, webhook_url, created_at, week_starts_at, onboarding_channel)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+    `INSERT INTO events (id, slug, name, status, api_key_hash, webhook_url, created_at, week_starts_at, onboarding_channel, mode)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
     [
       ev.id,
       ev.slug,
@@ -49,6 +52,7 @@ export async function seedEvent(overrides: SeedEventOptions = {}) {
       new Date().toISOString(),
       ev.weekStartsAt,
       ev.onboardingChannel,
+      ev.mode,
     ],
   );
   return ev;
