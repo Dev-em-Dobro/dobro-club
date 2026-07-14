@@ -87,3 +87,43 @@ describe("POST /api/e/[slug]/ingresso", () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe("reemissão do ingresso (o participante disse que saiu errado)", () => {
+  const photoUrl = "https://res.cloudinary.com/x/image/upload/maria.jpg";
+
+  async function photoOf(leadId: string) {
+    const { rows } = await query("SELECT photo_url FROM leads WHERE id = $1", [leadId]);
+    return rows[0].photo_url;
+  }
+
+  it("reemite trocando a foto quebrada pelo avatar padrão (photo_url = null)", async () => {
+    const first = await (await post("piloto", { ...valid, photoUrl })).json();
+    expect(await photoOf(first.leadId)).toBe(photoUrl);
+
+    const again = await (
+      await post("piloto", { ...valid, photoUrl: undefined, reissue: true })
+    ).json();
+
+    expect(again.leadId).toBe(first.leadId);
+    expect(await photoOf(first.leadId)).toBeNull();
+  });
+
+  it("sem `reissue`, uma nova captação NÃO mexe na foto de quem já existe", async () => {
+    const first = await (await post("piloto", { ...valid, photoUrl })).json();
+    await post("piloto", { ...valid, photoUrl: undefined });
+    expect(await photoOf(first.leadId)).toBe(photoUrl);
+  });
+
+  it("não reemite o ingresso alheio: e-mail certo, telefone errado não basta", async () => {
+    const first = await (await post("piloto", { ...valid, photoUrl })).json();
+
+    await post("piloto", {
+      ...valid,
+      phone: "5511000000000", // conhece o e-mail, não o WhatsApp
+      photoUrl: undefined,
+      reissue: true,
+    });
+
+    expect(await photoOf(first.leadId)).toBe(photoUrl);
+  });
+});
