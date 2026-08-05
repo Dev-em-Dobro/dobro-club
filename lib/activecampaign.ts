@@ -96,3 +96,44 @@ export async function syncMagicLinkToAC(
 
   return { sent: true };
 }
+
+/**
+ * Aplica uma tag a um contato do ActiveCampaign, identificado por e-mail. Faz
+ * upsert do contato (`contact/sync`) só para obter o id e então adiciona a tag
+ * (`contactTags`). Idempotente: a AC não re-dispara o gatilho de uma tag que o
+ * contato já tem, então pode ser chamada em toda geração de ingresso.
+ *
+ * Diferente de `syncMagicLinkToAC`, NÃO grava o magic link nem toca no campo do
+ * link — é só o sinal de check-in. O `tagId` vem de env do chamador
+ * (`AC_CHECKIN_TAG_ID`). No-op (best-effort) sem AC configurada, sem tag ou sem
+ * e-mail (identidade canônica do contato).
+ */
+export async function tagContactByEmail(
+  email: string | null | undefined,
+  tagId: string | undefined,
+): Promise<ACSyncResult> {
+  const base = (process.env.AC_API_URL || "").replace(/\/+$/, "");
+  const token = process.env.AC_API_TOKEN;
+  if (!base || !token) return { sent: false, reason: "ac-not-configured" };
+  if (!tagId) return { sent: false, reason: "no-tag" };
+  if (!email) return { sent: false, reason: "no-email" };
+
+  const sync = await acPost<{ contact?: { id?: string | number } }>(
+    `${base}/api/3/contact/sync`,
+    { contact: { email } },
+    token,
+  );
+  if (!sync.ok) return { sent: false, reason: "failed" };
+
+  const contactId = sync.body?.contact?.id;
+  if (!contactId) return { sent: false, reason: "no-contact-id" };
+
+  const tag = await acPost(
+    `${base}/api/3/contactTags`,
+    { contactTag: { contact: String(contactId), tag: tagId } },
+    token,
+  );
+  if (!tag.ok) return { sent: false, reason: "tag-failed" };
+
+  return { sent: true };
+}
