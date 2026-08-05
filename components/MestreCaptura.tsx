@@ -8,12 +8,13 @@ import {
   type FormEvent,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { sleep, typingDelay } from "@/lib/chat-typing";
 
 const DEFAULT_SLUG = process.env.NEXT_PUBLIC_EVENT_SLUG || "piloto";
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const onlyDigits = (v: string) => v.replace(/\D/g, "");
 const isValidPhone = (v: string) => /^\d{12,13}$/.test(v);
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 
 type Step = "greet" | "askName" | "askEmail" | "askPhone" | "saving" | "done";
 
@@ -65,11 +66,11 @@ export default function MestreCaptura() {
     async (lines: string[]) => {
       for (const line of lines) {
         setTyping(true);
-        await sleep(600);
+        await sleep(typingDelay(line));
         if (!mounted.current) return;
         setTyping(false);
         pushMsg({ from: "bot", text: line });
-        await sleep(160);
+        await sleep(260 + Math.random() * 240);
       }
     },
     [pushMsg],
