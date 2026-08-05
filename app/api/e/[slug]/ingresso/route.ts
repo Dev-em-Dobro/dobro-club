@@ -1,7 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getEventBySlug, isTicketOnly } from "@/lib/events";
 import { validateLeadInput } from "@/lib/validate";
-import { createOrGetLead, setPhoto } from "@/lib/leads";
+import {
+  createLead,
+  getLeadByEmail,
+  getLeadById,
+  getLeadByPhone,
+  setPhoto,
+  type Lead,
+} from "@/lib/leads";
 import { buildMagicLink } from "@/lib/auth/token";
 import { sendMagicLinkEmail } from "@/lib/email";
 import { tagContactByEmail } from "@/lib/activecampaign";
@@ -14,8 +21,8 @@ const limiter = makeLimiter({ windowMs: 60_000, max: 60 });
 
 /**
  * Prova de posse suficiente para reemitir: quem manda **os dois** identificadores
- * do lead (e-mail e telefone) é o dono. `createOrGetLead` casa por e-mail OU
- * telefone — só um deles bastaria para um terceiro mexer no ingresso de outro.
+ * do lead (e-mail e telefone) é o dono. Um só não basta — quem acerta apenas o
+ * telefone (ou apenas o e-mail) de outra pessoa mexeria no ingresso dela.
  */
 function ownsLead(
   lead: { email: string | null; phone: string | null },
@@ -59,30 +66,64 @@ export async function POST(
   const { ok, errors, value } = validateLeadInput(body);
   if (!ok) return NextResponse.json({ errors }, { status: 400 });
 
-  const { lead, isNew } = await createOrGetLead(event.id, value);
-
   // Foto do participante (já subida ao Cloudinary pelo cliente). Best-effort:
   // ausência/erro segue com avatar padrão (FR-003/FR-015).
   const photoUrl = typeof body.photoUrl === "string" ? body.photoUrl : null;
+  const ticketOnly = isTicketOnly(event);
 
-  if (isNew) {
-    if (photoUrl) {
-      await setPhoto(event.id, lead.id, photoUrl);
-      lead.photoUrl = photoUrl;
+  // Reemissão: o ingresso saiu quebrado (tipicamente a foto derruba a
+  // transformação do Cloudinary) e o participante pediu de novo. Reaproveita o
+  // MESMO lead — sem isso cada "saiu errado" viraria uma linha nova. O `leadId`
+  // vem da resposta anterior e sozinho não basta: ele circula em `?ref=` público,
+  // então e-mail E telefone precisam bater com a linha (`ownsLead`).
+  let lead: Lead | null = null;
+  let isNew = false;
+  if (body.reissue === true && typeof body.leadId === "string") {
+    const target = await getLeadById(event.id, body.leadId);
+    if (target && ownsLead(target, value)) {
+      await setPhoto(event.id, target.id, photoUrl);
+      target.photoUrl = photoUrl;
+      lead = target;
     }
-  } else if (body.reissue === true && ownsLead(lead, value)) {
-    // Reemissão: o ingresso saiu quebrado (tipicamente a foto derruba a
-    // transformação do Cloudinary) e o participante pediu de novo. Só aceita
-    // quando e-mail E telefone batem com o lead — assim ninguém reemite, nem
-    // apaga a foto, do ingresso alheio a partir de um `?ref=` público.
-    await setPhoto(event.id, lead.id, photoUrl);
-    lead.photoUrl = photoUrl;
+  }
+
+  if (!lead) {
+    lead = await createLead(event.id, value, photoUrl);
+    isNew = true;
+  }
+
+  // Inserção barrada pelos índices únicos de e-mail/telefone: esses dados já
+  // pertencem a OUTRA linha do evento. Nunca devolvemos essa linha — nome, foto
+  // e `token` (⇒ magic link) dela seriam entregues a quem fez a requisição, que
+  // pode ser um terceiro que só digitou um identificador coincidente. O acesso
+  // sai pelo canal que já é do dono: o e-mail cadastrado.
+  if (!lead) {
+    if (!ticketOnly) {
+      const owner =
+        (value.email ? await getLeadByEmail(event.id, value.email) : null) ??
+        (value.phone ? await getLeadByPhone(event.id, value.phone) : null);
+      if (owner?.email) {
+        sendMagicLinkEmail({
+          to: owner.email,
+          name: owner.name,
+          eventName: event.name,
+          magicLink: buildMagicLink(owner.token),
+        }).catch((e) => console.error("[ingresso] reenvio de acesso falhou:", e));
+      }
+    }
+    return NextResponse.json(
+      {
+        error: ticketOnly
+          ? "esses dados já geraram um ingresso neste evento"
+          : "esses dados já geraram um ingresso — reenviamos o link de acesso para o e-mail cadastrado",
+      },
+      { status: 409 },
+    );
   }
 
   // Evento "só ingresso" (evento pago): nada de acesso — o participante leva a
   // imagem e o lead fica no banco. Sem e-mail e sem magic link na resposta, para
   // que não exista caminho de entrada/recuperação a ser divulgado.
-  const ticketOnly = isTicketOnly(event);
   const ticket = buildTicket(lead, event);
 
   if (ticketOnly) {

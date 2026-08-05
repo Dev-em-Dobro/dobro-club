@@ -44,6 +44,10 @@ type Step =
   | "confirmPhone"
   | "generating"
   | "confirmTicket"
+  // Esses dados já geraram ingresso: o acesso foi reenviado para o e-mail
+  // cadastrado, não para esta tela. Estado terminal e sem rodapé — reabrir o
+  // formulário só devolveria o mesmo 409.
+  | "blocked"
   | "done";
 
 interface Msg {
@@ -166,7 +170,8 @@ export default function IngressoChat({
   // Cutucada de inatividade: a pessoa parou no meio do funil (roteiro do
   // lançamento clássico). Dispara UMA vez por etapa de espera, nunca no fim.
   useEffect(() => {
-    if (typing || step === "generating" || step === "done") return;
+    if (typing || step === "generating" || step === "blocked" || step === "done")
+      return;
     if (nudged.current.has(step)) return;
 
     const timer = setTimeout(() => {
@@ -242,6 +247,9 @@ export default function IngressoChat({
           photoUrl: photo || undefined,
           ref: ref || undefined,
           reissue: reissue || undefined,
+          // Sem isto a reemissão não acha o lead e esbarra nos índices únicos:
+          // o servidor exige o id da linha (mais e-mail e telefone) para regravar.
+          leadId: reissue ? result?.leadId : undefined,
           consent: true,
         }),
       });
@@ -250,6 +258,11 @@ export default function IngressoChat({
         errors?: string[];
       };
       if (!res.ok) {
+        if (res.status === 409) {
+          setStep("blocked");
+          await botSay([data.error || copy.genericError]);
+          return;
+        }
         await botSay([
           (Array.isArray(data.errors) && data.errors.join(", ")) ||
             data.error ||

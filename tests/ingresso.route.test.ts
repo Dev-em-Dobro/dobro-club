@@ -42,19 +42,32 @@ describe("POST /api/e/[slug]/ingresso", () => {
     expect(data.ticket.qrValue).not.toContain("/entrar/");
   });
 
-  it("é idempotente por e-mail OU telefone (FR-002,014)", async () => {
+  // Regressão do vazamento em produção: com o casamento por e-mail OU telefone,
+  // acertar UM identificador devolvia a linha alheia — nome, foto e magic link
+  // (token) do dono iam para a tela de quem fez a requisição.
+  it("nunca devolve o lead alheio a quem acerta só um identificador", async () => {
     const first = await (await post("piloto", valid)).json();
-    const sameEmail = await (
-      await post("piloto", { ...valid, phone: "+550000000000" })
-    ).json();
-    expect(sameEmail.isNew).toBe(false);
-    expect(sameEmail.leadId).toBe(first.leadId);
 
-    const samePhone = await (
-      await post("piloto", { ...valid, email: "outro@exemplo.com" })
-    ).json();
-    expect(samePhone.isNew).toBe(false);
-    expect(samePhone.leadId).toBe(first.leadId);
+    for (const intruso of [
+      { ...valid, phone: "+550000000000" }, // sabe o e-mail, não o telefone
+      { ...valid, email: "outro@exemplo.com" }, // sabe o telefone, não o e-mail
+    ]) {
+      const res = await post("piloto", intruso);
+      expect(res.status).toBe(409);
+
+      const data = await res.json();
+      expect(data.leadId).toBeUndefined();
+      expect(data.magicLink).toBeUndefined();
+      expect(data.ticket).toBeUndefined();
+      // Nem o nome do dono pode transparecer na mensagem de erro.
+      expect(JSON.stringify(data)).not.toContain(valid.name);
+    }
+
+    // E o lead do dono segue intacto (ninguém sobrescreveu nada).
+    const { rows } = await query("SELECT name FROM leads WHERE id = $1", [
+      first.leadId,
+    ]);
+    expect(rows[0].name).toBe(valid.name);
   });
 
   it("persiste a foto quando enviada (FR-015)", async () => {
@@ -101,7 +114,12 @@ describe("reemissão do ingresso (o participante disse que saiu errado)", () => 
     expect(await photoOf(first.leadId)).toBe(photoUrl);
 
     const again = await (
-      await post("piloto", { ...valid, photoUrl: undefined, reissue: true })
+      await post("piloto", {
+        ...valid,
+        photoUrl: undefined,
+        reissue: true,
+        leadId: first.leadId,
+      })
     ).json();
 
     expect(again.leadId).toBe(first.leadId);
@@ -114,16 +132,20 @@ describe("reemissão do ingresso (o participante disse que saiu errado)", () => 
     expect(await photoOf(first.leadId)).toBe(photoUrl);
   });
 
+  // O `leadId` circula em `?ref=` público, então tê-lo não prova posse: e-mail E
+  // telefone precisam bater com a linha para a foto ser regravada.
   it("não reemite o ingresso alheio: e-mail certo, telefone errado não basta", async () => {
     const first = await (await post("piloto", { ...valid, photoUrl })).json();
 
-    await post("piloto", {
+    const res = await post("piloto", {
       ...valid,
-      phone: "5511000000000", // conhece o e-mail, não o WhatsApp
+      phone: "5511000000000", // conhece o e-mail e o leadId, não o WhatsApp
       photoUrl: undefined,
       reissue: true,
+      leadId: first.leadId,
     });
 
+    expect(res.status).toBe(409);
     expect(await photoOf(first.leadId)).toBe(photoUrl);
   });
 });
