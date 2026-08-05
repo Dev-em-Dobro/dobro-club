@@ -16,14 +16,18 @@ export interface CopyOptions {
 
 export interface IngressoCopy {
   greet: string[];
-  start: string[];
   askName: string[];
   nameIncomplete: string[];
   confirmName: (name: string) => string[];
   askPhoto: string[];
   uploadPhoto: string[];
   photoRejected: string[];
+  /** Foto acima do limite: o navegador vai tentar reduzir antes de subir. */
   photoTooBig: string[];
+  /** Redução deu certo — a foto original foi aproveitada. */
+  photoOptimized: string[];
+  /** Nem reduzida a foto coube: manda outra ou segue com o avatar padrão. */
+  photoStillTooBig: string[];
   photoFailed: string[];
   askEmail: string[];
   invalidEmail: string[];
@@ -59,7 +63,7 @@ export function ingressoCopy({
   const finish = ticketOnly
     ? [
         "Maravilha! Seu ingresso está pronto ✨",
-        "Compartilhe pra todo mundo saber que você vai estar lá 🎟️",
+        "Compartilhe pra todo mundo saber que você vai estar lá 🎫",
       ]
     : [
         "Maravilha! Te esperamos na primeira aula do evento, na próxima segunda-feira, 20h (horário de Brasília).",
@@ -79,11 +83,8 @@ export function ingressoCopy({
   return {
     greet: [
       `Opa! Seja bem-vindo(a) à ${eventName} 🎮`,
-      "Digite INGRESSO para começar 🎟️",
-    ],
-    start: [
-      `Chegou a hora de receber seu Ingresso individual e personalizado pra participar da ${eventName}!`,
-      "Preparado(a)? 🚀",
+      "Que bom te ver por aqui — vai ser um evento e tanto! ✨",
+      "Pra garantir sua presença, vou gerar seu ingresso individual e personalizado. Só preciso de alguns dados rapidinho 🎫",
     ],
     askName: [
       "Agora, digite o seu NOME e um SOBRENOME pra colocarmos no seu ingresso.",
@@ -102,9 +103,13 @@ export function ingressoCopy({
       "Boa! Me envie uma foto quadrada (formato 1:1), com o seu rosto bem centralizado.",
     ],
     photoRejected: [
-      "Esse formato não rola (use JPEG, PNG ou WebP). Vou seguir com o avatar padrão 👍",
+      "Esse formato não rola aqui — vale JPEG, PNG ou WebP. Me manda outra ou seguimos com o avatar padrão 👇",
     ],
-    photoTooBig: ["Essa imagem passou de 5MB. Vou seguir com o avatar padrão 👍"],
+    photoTooBig: ["Essa foto passou de 5MB. Deixa comigo, vou ajustar ela 🛠️"],
+    photoOptimized: ["Prontinho, ficou no tamanho certo ✨"],
+    photoStillTooBig: [
+      "Não consegui deixar essa foto abaixo de 5MB 😕 Me manda outra ou seguimos com o avatar padrão 👇",
+    ],
     photoFailed: [
       "Não consegui enviar sua foto agora — seguimos com o avatar padrão 👍",
     ],
@@ -135,11 +140,8 @@ export function ingressoCopy({
       "Sua foto não carregou aqui — reemiti o ingresso com o avatar padrão 👍",
     ],
     finish,
-    idleNudge: [
-      "Opa, vi que você ainda não finalizou o seu ingresso…",
-      "É super rápido, falta só um pouco!",
-      "Vamos continuar?",
-    ],
+    // Uma linha só: quem parou no meio não volta por causa de um discurso.
+    idleNudge: ["Ainda por aí? Falta pouco pro seu ingresso ficar pronto 👇"],
     genericError: "Ops, algo deu errado ao gerar seu ingresso.",
     retryAfterError: "Vamos tentar de novo? Confirme seu e-mail 👇",
   };

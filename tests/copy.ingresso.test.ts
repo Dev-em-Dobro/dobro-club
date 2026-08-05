@@ -17,9 +17,28 @@ describe("copy do Mestre — lançamento clássico", () => {
     );
   });
 
-  it("usa o nome do evento na saudação e na abertura", () => {
+  it("usa o nome do evento na saudação", () => {
     expect(classico.greet.join(" ")).toContain("Semana do Zero ao Programador Contratado");
-    expect(classico.start.join(" ")).toContain("Semana do Zero ao Programador Contratado");
+  });
+
+  it("cutuca quem parou com uma linha só (sem discurso)", () => {
+    expect(classico.idleNudge).toHaveLength(1);
+  });
+});
+
+describe("copy do Mestre — foto do participante", () => {
+  it("foto grande demais avisa o limite e não desiste da foto", () => {
+    const aviso = classico.photoTooBig.join(" ");
+    expect(aviso).toMatch(/5MB/i);
+    expect(aviso).not.toMatch(/avatar padrão/i);
+  });
+
+  it("problema que a pessoa resolve oferece reenviar OU seguir sem foto", () => {
+    for (const linhas of [classico.photoStillTooBig, classico.photoRejected]) {
+      const texto = linhas.join(" ");
+      expect(texto).toMatch(/outra/i);
+      expect(texto).toMatch(/avatar padrão/i);
+    }
   });
 });
 

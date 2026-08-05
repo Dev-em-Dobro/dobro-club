@@ -10,6 +10,8 @@ import {
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { ingressoCopy } from "@/lib/copy/ingresso";
+import { sleep, typingDelay } from "@/lib/chat-typing";
+import { shrinkImage } from "@/lib/image-resize";
 
 const CLOUD = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
 const PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "";
@@ -18,8 +20,10 @@ const DEFAULT_EVENT_NAME = "Semana do Zero ao Programador Contratado";
 const WHATSAPP_GROUP =
   process.env.NEXT_PUBLIC_WHATSAPP_GROUP_URL || "https://chat.whatsapp.com/";
 
-// Silêncio tolerado numa etapa antes do Mestre cutucar ("vamos continuar?").
-const IDLE_NUDGE_MS = 60_000;
+// Silêncio tolerado numa etapa antes do Mestre cutucar. Preencher e-mail/telefone
+// (às vezes buscando o aparelho ou a foto) passa fácil de um minuto — cutucar cedo
+// atropela quem está no meio da tarefa.
+const IDLE_NUDGE_MS = 180_000;
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB (FR-015)
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"]; // FR-015
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -30,7 +34,6 @@ const isValidPhone = (v: string) => /^\d{12,13}$/.test(v);
 // Etapas do fluxo conversacional (roteiro do RPG).
 type Step =
   | "greet"
-  | "prepared"
   | "askName"
   | "confirmName"
   | "askPhoto"
@@ -64,7 +67,7 @@ interface TicketResult {
   };
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 
 /**
  * `ticketOnly` (evento pago): o fluxo termina no próprio ingresso — baixar e
@@ -122,17 +125,23 @@ export default function IngressoChat({
   const botSay = useCallback(
     async (lines: Array<string | Omit<Msg, "id" | "from">>) => {
       for (const line of lines) {
+        const text = typeof line === "string" ? line : line.text ?? "";
         setTyping(true);
-        await sleep(650);
+        await sleep(typingDelay(text));
         if (!mounted.current) return;
         setTyping(false);
         if (typeof line === "string") pushMsg({ from: "bot", text: line });
         else pushMsg({ from: "bot", ...line });
-        await sleep(180);
+        await sleep(260 + Math.random() * 240);
       }
     },
     [pushMsg],
   );
+
+  const goAskName = useCallback(async () => {
+    setStep("askName");
+    await botSay(copy.askName);
+  }, [botSay, copy.askName]);
 
   // Auto-scroll para a última mensagem.
   useEffect(() => {
@@ -146,8 +155,13 @@ export default function IngressoChat({
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    void botSay(copy.greet);
-  }, [botSay, copy]);
+    async function startConversation() {
+      await botSay(copy.greet);
+      if (!mounted.current) return;
+      await goAskName();
+    }
+    void startConversation();
+  }, [botSay, copy, goAskName]);
 
   // Cutucada de inatividade: a pessoa parou no meio do funil (roteiro do
   // lançamento clássico). Dispara UMA vez por etapa de espera, nunca no fim.
@@ -165,16 +179,6 @@ export default function IngressoChat({
   }, [step, typing, botSay, copy]);
 
   // ---- transições -------------------------------------------------------
-
-  async function startFlow() {
-    setStep("prepared");
-    await botSay(copy.start);
-  }
-
-  async function goAskName() {
-    setStep("askName");
-    await botSay(copy.askName);
-  }
 
   async function goConfirmName(value: string) {
     setStep("confirmName");
@@ -316,35 +320,8 @@ export default function IngressoChat({
     );
   }
 
-  /**
-   * O Instagram NÃO aceita post pré-preenchido pela web (não existe URL que abra
-   * o app já com imagem/legenda — só o SDK nativo faz isso). O caminho possível é
-   * o do próprio Instagram: a imagem no rolo da câmera e o post feito no app.
-   * Então baixamos o ingresso e abrimos o Stories; no celular, a folha nativa do
-   * botão "Compartilhar" também lista o Instagram já com a imagem anexada.
-   */
-  async function shareOnInstagram() {
-    if (!result) return;
-    // No mobile, o share nativo com arquivo entrega o ingresso direto ao app.
-    const file = await ticketAsFile();
-    if (file && navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({ text: shareText(), files: [file] });
-        return;
-      } catch (e) {
-        if ((e as Error).name === "AbortError") return;
-        // segue para o caminho baixar + abrir o app
-      }
-    }
-    downloadTicket();
-    await botSay([
-      "Salvei seu ingresso na galeria 📲 Agora é só abrir o Instagram e postar nos Stories!",
-    ]);
-    window.open("https://www.instagram.com/", "_blank", "noopener");
-  }
-
   function shareText(): string {
-    return `Garanti meu ingresso pra ${event}! 🎟️`;
+    return `Garanti meu ingresso pra ${event}! 🎫`;
   }
 
   /** A imagem como File, quando o navegador aceita compartilhar arquivos (mobile). */
@@ -362,7 +339,7 @@ export default function IngressoChat({
     }
   }
 
-  /** "Mais opções": folha nativa do sistema (Stories, Telegram, X…) ou copiar o link. */
+  /** "Compartilhar": folha nativa do sistema (Stories, Telegram, X…) ou copiar o link. */
   async function shareTicket() {
     if (!result) return;
     const text = shareText();
@@ -430,14 +407,6 @@ export default function IngressoChat({
     const value = input.trim();
     if (!value || typing) return;
 
-    if (step === "greet") {
-      pushMsg({ from: "user", text: value });
-      setInput("");
-      if (/^ingresso$/i.test(value)) void startFlow();
-      else void botSay(["É só digitar INGRESSO pra gente começar 🎟️"]);
-      return;
-    }
-
     if (step === "askName") {
       if (value.split(/\s+/).length < 2) {
         pushMsg({ from: "user", text: value });
@@ -482,30 +451,44 @@ export default function IngressoChat({
     }
   }
 
+  /**
+   * Problema que a pessoa consegue resolver (formato errado, foto grande demais)
+   * mantém a etapa em `uploadPhoto`: o rodapé continua oferecendo "Escolher foto"
+   * e "Continuar sem foto", então ela escolhe. Só falha de infraestrutura
+   * (upload caiu) segue o funil sozinha — aí não há o que ela conserte.
+   */
   async function onPickPhoto(file: File | undefined) {
     if (!file) return;
     if (!ACCEPTED.includes(file.type)) {
       pushMsg({ from: "user", text: "📎 (foto)" });
+      setPhotoUrl(null);
       await botSay(copy.photoRejected);
-      setPhotoUrl(null);
-      void goAskEmail();
-      return;
-    }
-    if (file.size > MAX_BYTES) {
-      pushMsg({ from: "user", text: "📎 (foto)" });
-      await botSay(copy.photoTooBig);
-      setPhotoUrl(null);
-      void goAskEmail();
       return;
     }
 
-    const preview = URL.createObjectURL(file);
-    pushMsg({ from: "user", imageUrl: preview });
+    // A prévia é a foto escolhida, mostrada antes de qualquer ajuste — a pessoa
+    // vê que o envio chegou enquanto a redução roda.
+    pushMsg({ from: "user", imageUrl: URL.createObjectURL(file) });
+
+    let upload = file;
+    if (file.size > MAX_BYTES) {
+      await botSay(copy.photoTooBig);
+      const smaller = await shrinkImage(file, MAX_BYTES);
+      if (!mounted.current) return;
+      if (!smaller) {
+        setPhotoUrl(null);
+        await botSay(copy.photoStillTooBig);
+        return;
+      }
+      upload = smaller;
+      await botSay(copy.photoOptimized);
+    }
+
     setUploading(true);
     try {
       if (!CLOUD || !PRESET) throw new Error("cloudinary não configurado");
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", upload);
       fd.append("upload_preset", PRESET);
       const res = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`,
@@ -552,7 +535,6 @@ export default function IngressoChat({
     if (typing) return null;
 
     switch (step) {
-      case "greet":
       case "askName":
       case "askEmail":
       case "askPhone":
@@ -572,13 +554,11 @@ export default function IngressoChat({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={
-                step === "greet"
-                  ? "Digite INGRESSO"
-                  : step === "askName"
-                    ? "Seu nome e sobrenome"
-                    : step === "askPhone"
-                      ? "5511999999999"
-                      : "voce@exemplo.com"
+                step === "askName"
+                  ? "Seu nome e sobrenome"
+                  : step === "askPhone"
+                    ? "5511999999999"
+                    : "voce@exemplo.com"
               }
               autoComplete={
                 step === "askEmail" ? "email" : step === "askPhone" ? "tel" : "off"
@@ -590,9 +570,6 @@ export default function IngressoChat({
             </button>
           </form>
         );
-
-      case "prepared":
-        return <QuickReplies options={[{ label: "ESTOU PREPARADO 🚀", onClick: () => void goAskName() }]} />;
 
       case "confirmName":
         return (
@@ -629,7 +606,13 @@ export default function IngressoChat({
               type="file"
               accept="image/jpeg,image/png,image/webp"
               hidden
-              onChange={(e) => void onPickPhoto(e.target.files?.[0])}
+              onChange={(e) => {
+                const picked = e.target.files?.[0];
+                // Zera o input: sem isso, reescolher o MESMO arquivo (depois de
+                // um erro) não dispara `change` de novo e a tentativa some.
+                e.target.value = "";
+                void onPickPhoto(picked);
+              }}
             />
             <button
               type="button"
@@ -683,8 +666,13 @@ export default function IngressoChat({
           />
         );
 
-      // Fim do funil: os dois eventos entregam o ingresso (baixar/compartilhar).
-      // O clássico soma o grupo de WhatsApp e o link de acesso ao ambiente.
+      // Fim do funil, em ordem de valor: a ação que fecha a participação (grupo
+      // de WhatsApp no clássico; compartilhar no pago), depois o convite que traz
+      // gente nova (`?ref=`), e por último baixar/compartilhar como secundárias.
+      // Instagram saiu como botão próprio: no celular a folha nativa de
+      // "Compartilhar" já entrega o ingresso ao app, e no desktop não há post.
+      // O magic link não aparece aqui: ele chega por e-mail (e pelo onboarding do
+      // ActiveCampaign), com `/recuperar-ingresso` como resgate.
       case "done":
         return (
           <div className="chat-quick chat-quick--stack">
@@ -694,34 +682,24 @@ export default function IngressoChat({
               </a>
             )}
             <button type="button" className="quick-btn" onClick={shareOnWhatsApp}>
-              CHAMAR A GALERA NO WHATSAPP 💬
+              CHAMAR A GALERA 💬
             </button>
-            <button
-              type="button"
-              className="quick-btn"
-              onClick={() => void shareOnInstagram()}
-            >
-              POSTAR NO INSTAGRAM 📸
-            </button>
-            <button
-              type="button"
-              className="quick-btn quick-btn--ghost"
-              onClick={downloadTicket}
-            >
-              Baixar meu ingresso ⬇️
-            </button>
-            <button
-              type="button"
-              className="quick-btn quick-btn--ghost"
-              onClick={() => void shareTicket()}
-            >
-              {shared ? "Link copiado! ✓" : "Mais opções 🔗"}
-            </button>
-            {!ticketOnly && result?.magicLink && (
-              <a className="chat-access" href={result.magicLink}>
-                Guarde seu link de acesso ao evento →
-              </a>
-            )}
+            <div className="chat-quick chat-quick--row">
+              <button
+                type="button"
+                className="quick-btn quick-btn--ghost"
+                onClick={downloadTicket}
+              >
+                Baixar ⬇️
+              </button>
+              <button
+                type="button"
+                className="quick-btn quick-btn--ghost"
+                onClick={() => void shareTicket()}
+              >
+                {shared ? "Copiado! ✓" : "Compartilhar 🔗"}
+              </button>
+            </div>
           </div>
         );
 
