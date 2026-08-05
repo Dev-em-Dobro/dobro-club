@@ -5,13 +5,14 @@
 // servido de `/public` (sem overlay de foto/nome), mantendo o comportamento
 // determinístico e pg-mem-safe.
 //
-// Template ativo: "Ingresso Lançamento MAR_ABR 26" (608×1080, story 9:16). O
-// card roxo no centro tem uma faixa livre (abaixo do título "SEMANA <DO ZERO AO
-// PROGRAMADOR CONTRATADO>" e acima da pílula "Evento totalmente online e
-// gratuito") — é a zona de personalização onde entram foto + nome. Enquanto o
-// Cloudinary não estiver configurado, o fallback usa o próprio PNG local; quando
-// NEXT_PUBLIC_CLOUDINARY_TICKET_TEMPLATE (public_id do PNG subido) estiver setado,
-// a URL de transformação compõe foto + nome (coordenadas abaixo assumem 608×1080).
+// Template ativo: "Ingresso Lançamento AGO 26 - GTA" (608×1080, story 9:16). O
+// card preto no centro tem uma faixa livre (abaixo do título "SEMANA DO ZERO AO
+// PROGRAMADOR CONTRATADO" e acima da perfuração/pílula "De 10 a 16 de agosto —
+// Evento totalmente online e gratuito") — é a zona de personalização onde entram
+// foto + nome. Enquanto o Cloudinary não estiver configurado, o fallback usa o
+// próprio PNG local; quando NEXT_PUBLIC_CLOUDINARY_TICKET_TEMPLATE (public_id do
+// PNG subido) estiver setado, a URL de transformação compõe foto + nome
+// (coordenadas abaixo assumem 608×1080).
 
 import type { Lead } from "./leads";
 import { isTicketOnly, type EventRow } from "./events";
@@ -22,19 +23,32 @@ const TEMPLATE = process.env.NEXT_PUBLIC_CLOUDINARY_TICKET_TEMPLATE || "";
 // envia foto (FR-003/FR-015). Já é circular/transparente — mesmo recorte da foto.
 const AVATAR = process.env.NEXT_PUBLIC_CLOUDINARY_TICKET_AVATAR || "avatar-ingresso_suacwi";
 
-// Geometria da zona de personalização no template 608×1080 (faixa livre do card,
-// entre o título e a pílula "Evento totalmente online e gratuito"). Offsets a
-// partir do topo, imagem centralizada em x. Calibrado visualmente sobre o template.
-const PHOTO_SIZE = 118; // diâmetro do recorte circular da foto
-const PHOTO_TOP = 372; // topo da foto dentro do card roxo
-const NAME_TOP = 508; // topo do bloco de nome, acima da pílula
-const NAME_WIDTH = 250; // largura máxima do texto (quebra dentro do card)
+// Geometria da zona de personalização no template 608×1080 (faixa livre do card
+// preto, entre o título e a perfuração/pílula de data). Offsets a partir do
+// topo, imagem centralizada em x. Calibrado visualmente sobre o template
+// (faixa livre real ~y=620–880, card com ~470px de largura útil nessa altura).
+// Avatar e nome ficam CENTRADOS no eixo do título (medido: "PROGRAMADOR"/
+// "CONTRATADO" centram em x=304 = centro da imagem). Não deslocar em x: jogar a
+// foto pro lado a tira do eixo do título e o conjunto lê como desalinhado.
+const PHOTO_SIZE = 164; // diâmetro do recorte circular (prominência do template)
+const PHOTO_TOP = 650; // topo da foto, logo abaixo do título
+const NAME_TOP = 832; // topo do bloco de nome, acima da perfuração (~y=895)
+// Não encolher: abaixo de ~300 o nome longo quebra em DUAS linhas e a segunda
+// invade a perfuração — mais estreito piora, ao contrário do que parece.
+const NAME_WIDTH = 300; // largura máxima do texto
+// Inclinação leve do nome, casando com a diagonal de ~2° do próprio card — sutil
+// de propósito: mais que isso lê como "torto", não como parte do design.
+const NAME_ANGLE = -2;
 
-// A faixa é estreita; encolhe a fonte p/ nomes longos não baterem na pílula.
+// Encolhe a fonte p/ nomes longos caberem em UMA linha na largura do card. O
+// gargalo não é a altura (a folga até a perfuração fica ~35–40px em todos os
+// tamanhos), é a quebra de linha: com fonte grande, um nome longo passa de
+// `w_${NAME_WIDTH}` e vira duas linhas — a segunda invade a perfuração. Tiers
+// medidos: 30/24/18 mantêm até 14 / 22 / ~29 caracteres numa linha só.
 function nameFontSize(name: string): number {
   const len = name.length;
-  if (len <= 13) return 28;
-  if (len <= 22) return 22;
+  if (len <= 14) return 30;
+  if (len <= 22) return 24;
   return 18;
 }
 
@@ -43,8 +57,8 @@ export const DEFAULT_AVATAR = "/sprites/happy-mage.png";
 
 /**
  * Template do evento servido de `/public` (cópia de
- * `assets/Ingresso Lançamento MAR_ABR 26.png`). Usado como ingresso no fallback
- * enquanto o Cloudinary não está configurado.
+ * `assets/Ingresso Lançamento AGO 26 - GTA.png`). Usado como ingresso no
+ * fallback enquanto o Cloudinary não está configurado.
  */
 export const DEFAULT_TEMPLATE = "/ingresso-template.png";
 
@@ -149,7 +163,7 @@ export function buildTicketImageUrl(
 
   if (lead.name) {
     layers.push(
-      `l_text:Montserrat_${nameFontSize(lead.name)}_bold:${encodeText(lead.name)},co_white,c_fit,w_${NAME_WIDTH}`,
+      `l_text:Montserrat_${nameFontSize(lead.name)}_bold:${encodeText(lead.name)},co_white,c_fit,w_${NAME_WIDTH},a_${NAME_ANGLE}`,
       `fl_layer_apply,g_north,y_${NAME_TOP}`,
     );
   }
