@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { syncMagicLinkToAC } from "@/lib/activecampaign";
+import { syncMagicLinkToAC, tagContactByEmail } from "@/lib/activecampaign";
 
 const LINK = "https://dobro.club/entrar/tok123";
 
@@ -131,5 +131,68 @@ describe("syncMagicLinkToAC", () => {
     const r = await syncMagicLinkToAC("ana@x.com", LINK);
     expect(r).toEqual({ sent: false, reason: "no-contact-id" });
     expect(fetchFn).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("tagContactByEmail (tag de check-in)", () => {
+  const TAG = "53415";
+
+  it("no-op quando a AC não está configurada (sem chamar a AC)", async () => {
+    vi.stubEnv("AC_API_TOKEN", "");
+    const fetchFn = mockFetch(async () => ({ ok: true }));
+    const r = await tagContactByEmail("ana@x.com", TAG);
+    expect(r).toEqual({ sent: false, reason: "ac-not-configured" });
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("no-op quando não há tag configurada", async () => {
+    const fetchFn = mockFetch(async () => ({ ok: true }));
+    const r = await tagContactByEmail("ana@x.com", undefined);
+    expect(r).toEqual({ sent: false, reason: "no-tag" });
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("no-op quando o lead não tem e-mail", async () => {
+    const fetchFn = mockFetch(async () => ({ ok: true }));
+    const r = await tagContactByEmail(null, TAG);
+    expect(r).toEqual({ sent: false, reason: "no-email" });
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("faz upsert do contato (sem gravar campo) e aplica a tag", async () => {
+    const fetchFn = vi.fn(async (url: string) =>
+      String(url).endsWith("/api/3/contact/sync")
+        ? { ok: true, json: async () => ({ contact: { id: "42" } }) }
+        : { ok: true, json: async () => ({}) },
+    );
+    vi.stubGlobal("fetch", fetchFn as unknown as typeof fetch);
+
+    const r = await tagContactByEmail("ana@x.com", TAG);
+    expect(r).toEqual({ sent: true });
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+
+    // 1) contact/sync só com o e-mail — NÃO grava o magic link (isso é do onboarding).
+    const [syncUrl, syncInit] = fetchFn.mock.calls[0] as unknown as [string, RequestInit];
+    expect(syncUrl).toBe("https://acme.api-us1.com/api/3/contact/sync");
+    expect(JSON.parse(syncInit.body as string)).toEqual({ contact: { email: "ana@x.com" } });
+
+    // 2) contactTags com a tag de check-in.
+    const [tagUrl, tagInit] = fetchFn.mock.calls[1] as unknown as [string, RequestInit];
+    expect(tagUrl).toBe("https://acme.api-us1.com/api/3/contactTags");
+    expect(JSON.parse(tagInit.body as string)).toEqual({
+      contactTag: { contact: "42", tag: TAG },
+    });
+  });
+
+  it("tag-failed: contato ok mas a AC recusa a tag ⇒ sent:false", async () => {
+    const fetchFn = vi.fn(async (url: string) =>
+      String(url).endsWith("/api/3/contact/sync")
+        ? { ok: true, json: async () => ({ contact: { id: "42" } }) }
+        : { ok: false, json: async () => ({}) },
+    );
+    vi.stubGlobal("fetch", fetchFn as unknown as typeof fetch);
+
+    const r = await tagContactByEmail("ana@x.com", TAG);
+    expect(r).toEqual({ sent: false, reason: "tag-failed" });
   });
 });

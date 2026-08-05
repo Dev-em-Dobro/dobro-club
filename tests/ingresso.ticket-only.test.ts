@@ -10,6 +10,13 @@ vi.mock("@/lib/email", () => ({
   sendMagicLinkEmail: (...args: unknown[]) => sendMagicLinkEmail(...(args as [])),
 }));
 
+// Check-in no ActiveCampaign: só o lançamento clássico marca. Mockado para provar
+// que o ticket-only NÃO dispara a tag (e para não tocar a rede nos testes).
+const tagContactByEmail = vi.fn(async (..._args: unknown[]) => ({ sent: true }));
+vi.mock("@/lib/activecampaign", () => ({
+  tagContactByEmail: (...args: unknown[]) => tagContactByEmail(...(args as [])),
+}));
+
 const { POST } = await import("@/app/api/e/[slug]/ingresso/route");
 const { POST: RECUPERAR } = await import(
   "@/app/api/e/[slug]/ingresso/recuperar/route"
@@ -48,6 +55,7 @@ beforeEach(async () => {
   await seedEvent({ id: "evt_full", slug: "piloto" });
   resetLimitersForTests();
   sendMagicLinkEmail.mockClear();
+  tagContactByEmail.mockClear();
 });
 
 describe("evento ticket-only — gerador de ingresso do evento pago", () => {
@@ -74,6 +82,11 @@ describe("evento ticket-only — gerador de ingresso do evento pago", () => {
   it("não envia e-mail nenhum (sem recuperação por e-mail)", async () => {
     await post(POST, "imersao", valid);
     expect(sendMagicLinkEmail).not.toHaveBeenCalled();
+  });
+
+  it("NÃO marca check-in no ActiveCampaign (só o clássico marca)", async () => {
+    await post(POST, "imersao", valid);
+    expect(tagContactByEmail).not.toHaveBeenCalled();
   });
 
   it("o QR/compartilhar apontam para o gerador DO evento, sem token (SC-006)", async () => {
@@ -115,5 +128,11 @@ describe("evento ticket-only — gerador de ingresso do evento pago", () => {
       `http://localhost:3000/ingresso?ref=${data.leadId}`,
     );
     expect(sendMagicLinkEmail).toHaveBeenCalledTimes(1);
+  });
+
+  it("evento completo marca check-in no ActiveCampaign com o e-mail do lead", async () => {
+    await post(POST, "piloto", valid);
+    expect(tagContactByEmail).toHaveBeenCalledTimes(1);
+    expect(tagContactByEmail.mock.calls[0][0]).toBe("maria@exemplo.com");
   });
 });

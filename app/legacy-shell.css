@@ -697,6 +697,9 @@ img.sprite { image-rendering: pixelated; display: block; }
   gap: 8px;
 }
 .chat-quick--stack { flex-direction: column; }
+/* Par de ações secundárias dividindo uma linha (baixar / compartilhar). */
+.chat-quick--row { flex-wrap: nowrap; }
+.chat-quick--row > .quick-btn { flex: 1 1 0; min-width: 0; padding: 0 10px; }
 .quick-btn {
   flex: 1 1 auto;
   min-height: 48px;
@@ -726,14 +729,6 @@ img.sprite { image-rendering: pixelated; display: block; }
 .quick-btn--ghost:active { transform: none; }
 
 .chat-cta { width: 100%; }
-.chat-access {
-  display: block;
-  text-align: center;
-  margin-top: 4px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--cyan);
-}
 
 /* Hub do evento (Story 8.12) — credencial provisória / ingresso oficial + gate */
 .ticket-figure {

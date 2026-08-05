@@ -4,6 +4,7 @@ import { validateLeadInput } from "@/lib/validate";
 import { createOrGetLead, setPhoto } from "@/lib/leads";
 import { buildMagicLink } from "@/lib/auth/token";
 import { sendMagicLinkEmail } from "@/lib/email";
+import { tagContactByEmail } from "@/lib/activecampaign";
 import { buildTicket } from "@/lib/ingresso";
 import { makeLimiter, clientIp } from "@/lib/ratelimit";
 
@@ -101,6 +102,16 @@ export async function POST(
       if (!r.sent) console.warn("[ingresso] magic-link email not sent:", r.reason);
     })
     .catch((e) => console.error("[ingresso] magic-link email error:", e));
+
+  // Sinal de check-in no ActiveCampaign: tag que dispara a automação de quem
+  // gerou o ingresso (só lançamento clássico — o ticket-only já retornou acima).
+  // Best-effort e fire-and-forget, mesmo padrão do e-mail: nunca bloqueia nem
+  // derruba a emissão. No-op quando AC_CHECKIN_TAG_ID/AC não estão configurados.
+  tagContactByEmail(lead.email, process.env.AC_CHECKIN_TAG_ID)
+    .then((r) => {
+      if (!r.sent) console.warn("[ingresso] AC check-in tag não aplicada:", r.reason);
+    })
+    .catch((e) => console.error("[ingresso] AC check-in tag erro:", e));
 
   // FR-005: o magic link é devolvido aqui para exibição na MESMA sessão.
   return NextResponse.json({
