@@ -55,6 +55,41 @@ function mapLead(row: LeadRow | undefined): Lead | null {
   };
 }
 
+/**
+ * Insere um lead **sem nunca cair em lead alheio**. Devolve `null` quando o
+ * e-mail/telefone já pertence a outra linha do evento (índices únicos parciais
+ * `idx_leads_event_email` / `idx_leads_event_phone` absorvidos pelo `ON CONFLICT`).
+ *
+ * Existe separado de `createOrGetLead` porque a captação pública não pode usar o
+ * fallback dele: casar por e-mail OU telefone e devolver a linha encontrada
+ * entrega nome, foto e `token` (⇒ magic link) do dono ao autor da requisição.
+ * Aqui, quem não consegue inserir não recebe identidade nenhuma.
+ */
+export async function createLead(
+  eventId: string,
+  input: LeadInput,
+  photoUrl: string | null = null,
+): Promise<Lead | null> {
+  const { rows } = await query<LeadRow>(
+    `INSERT INTO leads (id, event_id, name, email, phone, token, source, revoked, created_at, last_seen_at, photo_url)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT DO NOTHING RETURNING *`,
+    [
+      newId("lead"),
+      eventId,
+      input.name || null,
+      input.email || null,
+      input.phone || null,
+      generateToken(),
+      "captacao-externa",
+      false,
+      new Date().toISOString(),
+      null,
+      photoUrl,
+    ],
+  );
+  return mapLead(rows[0]);
+}
+
 export async function createOrGetLead(
   eventId: string,
   input: LeadInput,
