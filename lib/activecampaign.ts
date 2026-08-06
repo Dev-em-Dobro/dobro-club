@@ -12,6 +12,8 @@ export interface ACSyncResult {
 interface ACPostResult<T> {
   ok: boolean;
   body?: T;
+  status?: number;
+  errorText?: string;
 }
 
 async function acPost<T = unknown>(
@@ -19,9 +21,10 @@ async function acPost<T = unknown>(
   payload: unknown,
   token: string,
 ): Promise<ACPostResult<T>> {
+  let last: ACPostResult<T> = { ok: false };
   for (let attempt = 1; attempt <= 2; attempt++) {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 5000);
+    const timer = setTimeout(() => ctrl.abort(), 8000);
     try {
       const res = await fetch(url, {
         method: "POST",
@@ -36,15 +39,25 @@ async function acPost<T = unknown>(
         } catch {
           // corpo vazio/sem JSON — segue com body indefinido
         }
-        return { ok: true, body };
+        return { ok: true, body, status: res.status };
       }
-    } catch {
-      // tenta de novo uma vez
+      let errorText = "";
+      try {
+        errorText = (await res.text()).slice(0, 500);
+      } catch {
+        // ignore
+      }
+      last = { ok: false, status: res.status, errorText };
+    } catch (e) {
+      last = {
+        ok: false,
+        errorText: e instanceof Error ? e.message : "network",
+      };
     } finally {
       clearTimeout(timer);
     }
   }
-  return { ok: false };
+  return last;
 }
 
 /**
@@ -79,7 +92,10 @@ export async function syncMagicLinkToAC(
     { contact: { email, fieldValues: [{ field: fieldId, value: magicLink }] } },
     token,
   );
-  if (!sync.ok) return { sent: false, reason: "failed" };
+  if (!sync.ok) {
+    console.warn("[ac] contact/sync failed:", sync.status, sync.errorText);
+    return { sent: false, reason: `failed:${sync.status ?? "network"}` };
+  }
 
   // Sem tag configurada, o comportamento é o de sempre: só a gravação do link.
   if (!tagId) return { sent: true };
@@ -92,7 +108,11 @@ export async function syncMagicLinkToAC(
     { contactTag: { contact: String(contactId), tag: tagId } },
     token,
   );
-  if (!tag.ok) return { sent: false, reason: "tag-failed" };
+  // 422 = tag já aplicada — contato ok, automação já rodou antes.
+  if (!tag.ok && tag.status !== 422) {
+    console.warn("[ac] contactTags failed:", tag.status, tag.errorText);
+    return { sent: false, reason: "tag-failed" };
+  }
 
   return { sent: true };
 }
@@ -107,6 +127,14 @@ function splitName(name: string | null | undefined): {
   const parts = trimmed.split(/\s+/);
   if (parts.length === 1) return { firstName: parts[0] };
   return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+}
+
+/** Telefone no formato que a AC espera (`+` + dígitos E.164). */
+function formatPhoneForAC(phone: string | null | undefined): string | undefined {
+  if (!phone) return undefined;
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return undefined;
+  return `+${digits}`;
 }
 
 export interface ACContactProfile {
@@ -138,17 +166,21 @@ export async function tagContactByEmail(
   if (!email) return { sent: false, reason: "no-email" };
 
   const { firstName, lastName } = splitName(profile?.name);
+  const phone = formatPhoneForAC(profile?.phone);
   const contact: Record<string, string> = { email };
   if (firstName) contact.firstName = firstName;
   if (lastName) contact.lastName = lastName;
-  if (profile?.phone) contact.phone = profile.phone;
+  if (phone) contact.phone = phone;
 
   const sync = await acPost<{ contact?: { id?: string | number } }>(
     `${base}/api/3/contact/sync`,
     { contact },
     token,
   );
-  if (!sync.ok) return { sent: false, reason: "failed" };
+  if (!sync.ok) {
+    console.warn("[ac] check-in contact/sync failed:", sync.status, sync.errorText);
+    return { sent: false, reason: `failed:${sync.status ?? "network"}` };
+  }
 
   const contactId = sync.body?.contact?.id;
   if (!contactId) return { sent: false, reason: "no-contact-id" };
@@ -158,7 +190,11 @@ export async function tagContactByEmail(
     { contactTag: { contact: String(contactId), tag: tagId } },
     token,
   );
-  if (!tag.ok) return { sent: false, reason: "tag-failed" };
+  // 422 = tag já aplicada — o contato entrou na AC; trata como sucesso.
+  if (!tag.ok && tag.status !== 422) {
+    console.warn("[ac] check-in contactTags failed:", tag.status, tag.errorText);
+    return { sent: false, reason: "tag-failed" };
+  }
 
   return { sent: true };
 }
