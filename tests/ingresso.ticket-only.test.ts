@@ -134,5 +134,9 @@ describe("evento ticket-only — gerador de ingresso do evento pago", () => {
     await post(POST, "piloto", valid);
     expect(tagContactByEmail).toHaveBeenCalledTimes(1);
     expect(tagContactByEmail.mock.calls[0][0]).toBe("maria@exemplo.com");
+    expect(tagContactByEmail.mock.calls[0][2]).toEqual({
+      name: "Maria Silva",
+      phone: "5511999998888",
+    });
   });
 });

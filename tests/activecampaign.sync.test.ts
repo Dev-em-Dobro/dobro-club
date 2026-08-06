@@ -159,7 +159,7 @@ describe("tagContactByEmail (tag de check-in)", () => {
     expect(fetchFn).not.toHaveBeenCalled();
   });
 
-  it("faz upsert do contato (sem gravar campo) e aplica a tag", async () => {
+  it("faz upsert do contato com nome/telefone e aplica a tag", async () => {
     const fetchFn = vi.fn(async (url: string) =>
       String(url).endsWith("/api/3/contact/sync")
         ? { ok: true, json: async () => ({ contact: { id: "42" } }) }
@@ -167,14 +167,24 @@ describe("tagContactByEmail (tag de check-in)", () => {
     );
     vi.stubGlobal("fetch", fetchFn as unknown as typeof fetch);
 
-    const r = await tagContactByEmail("ana@x.com", TAG);
+    const r = await tagContactByEmail("ana@x.com", TAG, {
+      name: "Ana Silva",
+      phone: "5511999998888",
+    });
     expect(r).toEqual({ sent: true });
     expect(fetchFn).toHaveBeenCalledTimes(2);
 
-    // 1) contact/sync só com o e-mail — NÃO grava o magic link (isso é do onboarding).
+    // 1) contact/sync com perfil — NÃO grava o magic link (isso é do onboarding).
     const [syncUrl, syncInit] = fetchFn.mock.calls[0] as unknown as [string, RequestInit];
     expect(syncUrl).toBe("https://acme.api-us1.com/api/3/contact/sync");
-    expect(JSON.parse(syncInit.body as string)).toEqual({ contact: { email: "ana@x.com" } });
+    expect(JSON.parse(syncInit.body as string)).toEqual({
+      contact: {
+        email: "ana@x.com",
+        firstName: "Ana",
+        lastName: "Silva",
+        phone: "5511999998888",
+      },
+    });
 
     // 2) contactTags com a tag de check-in.
     const [tagUrl, tagInit] = fetchFn.mock.calls[1] as unknown as [string, RequestInit];
@@ -184,6 +194,20 @@ describe("tagContactByEmail (tag de check-in)", () => {
     });
   });
 
+  it("sem perfil: sync só com e-mail (compatível com chamadas antigas)", async () => {
+    const fetchFn = vi.fn(async (url: string) =>
+      String(url).endsWith("/api/3/contact/sync")
+        ? { ok: true, json: async () => ({ contact: { id: "42" } }) }
+        : { ok: true, json: async () => ({}) },
+    );
+    vi.stubGlobal("fetch", fetchFn as unknown as typeof fetch);
+
+    await tagContactByEmail("ana@x.com", TAG);
+    const [, syncInit] = fetchFn.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(syncInit.body as string)).toEqual({
+      contact: { email: "ana@x.com" },
+    });
+  });
   it("tag-failed: contato ok mas a AC recusa a tag ⇒ sent:false", async () => {
     const fetchFn = vi.fn(async (url: string) =>
       String(url).endsWith("/api/3/contact/sync")

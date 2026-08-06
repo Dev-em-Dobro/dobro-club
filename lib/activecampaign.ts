@@ -97,20 +97,39 @@ export async function syncMagicLinkToAC(
   return { sent: true };
 }
 
+/** Parte o nome completo em firstName / lastName pro payload da AC. */
+function splitName(name: string | null | undefined): {
+  firstName?: string;
+  lastName?: string;
+} {
+  const trimmed = name?.trim();
+  if (!trimmed) return {};
+  const parts = trimmed.split(/\s+/);
+  if (parts.length === 1) return { firstName: parts[0] };
+  return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+}
+
+export interface ACContactProfile {
+  name?: string | null;
+  phone?: string | null;
+}
+
 /**
  * Aplica uma tag a um contato do ActiveCampaign, identificado por e-mail. Faz
- * upsert do contato (`contact/sync`) só para obter o id e então adiciona a tag
- * (`contactTags`). Idempotente: a AC não re-dispara o gatilho de uma tag que o
- * contato já tem, então pode ser chamada em toda geração de ingresso.
+ * upsert do contato (`contact/sync`) com e-mail + nome/telefone (quando há) e
+ * então adiciona a tag (`contactTags`). Idempotente: a AC não re-dispara o
+ * gatilho de uma tag que o contato já tem, então pode ser chamada em toda
+ * geração de ingresso.
  *
  * Diferente de `syncMagicLinkToAC`, NÃO grava o magic link nem toca no campo do
- * link — é só o sinal de check-in. O `tagId` vem de env do chamador
- * (`AC_CHECKIN_TAG_ID`). No-op (best-effort) sem AC configurada, sem tag ou sem
- * e-mail (identidade canônica do contato).
+ * link — é o sinal de check-in (e a forma de o lead entrar na AC). O `tagId`
+ * vem de env do chamador (`AC_CHECKIN_TAG_ID`). No-op (best-effort) sem AC
+ * configurada, sem tag ou sem e-mail (identidade canônica do contato).
  */
 export async function tagContactByEmail(
   email: string | null | undefined,
   tagId: string | undefined,
+  profile?: ACContactProfile,
 ): Promise<ACSyncResult> {
   const base = (process.env.AC_API_URL || "").replace(/\/+$/, "");
   const token = process.env.AC_API_TOKEN;
@@ -118,9 +137,15 @@ export async function tagContactByEmail(
   if (!tagId) return { sent: false, reason: "no-tag" };
   if (!email) return { sent: false, reason: "no-email" };
 
+  const { firstName, lastName } = splitName(profile?.name);
+  const contact: Record<string, string> = { email };
+  if (firstName) contact.firstName = firstName;
+  if (lastName) contact.lastName = lastName;
+  if (profile?.phone) contact.phone = profile.phone;
+
   const sync = await acPost<{ contact?: { id?: string | number } }>(
     `${base}/api/3/contact/sync`,
-    { contact: { email } },
+    { contact },
     token,
   );
   if (!sync.ok) return { sent: false, reason: "failed" };
