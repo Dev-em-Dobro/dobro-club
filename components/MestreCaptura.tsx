@@ -9,11 +9,10 @@ import {
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { sleep, typingDelay } from "@/lib/chat-typing";
+import { isValidPhone, normalizePhone } from "@/lib/validate";
 
 const DEFAULT_SLUG = process.env.NEXT_PUBLIC_EVENT_SLUG || "piloto";
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-const onlyDigits = (v: string) => v.replace(/\D/g, "");
-const isValidPhone = (v: string) => /^\d{12,13}$/.test(v);
 
 
 type Step = "greet" | "askName" | "askEmail" | "askPhone" | "saving" | "done";
@@ -159,7 +158,7 @@ export default function MestreCaptura() {
     }
 
     if (step === "askPhone") {
-      const digits = onlyDigits(value);
+      const digits = normalizePhone(value);
       if (!isValidPhone(digits)) {
         pushMsg({ from: "user", text: value });
         setInput("");

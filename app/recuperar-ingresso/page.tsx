@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { isValidPhone, normalizePhone } from "@/lib/validate";
 
 const DEFAULT_SLUG = process.env.NEXT_PUBLIC_EVENT_SLUG || "piloto";
-const onlyDigits = (v: string) => v.replace(/\D/g, "");
-const isValidPhone = (v: string) => /^\d{12,13}$/.test(v);
 
 interface Access {
   name: string | null;
@@ -20,9 +19,11 @@ export default function RecuperarIngressoPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const digits = onlyDigits(phone);
+    const digits = normalizePhone(phone);
     if (!isValidPhone(digits)) {
-      setError("Use DDI + DDD + número (só números). Ex.: 5511999999999");
+      setError(
+        "Use DDI + DDD + número (só números). Ex. BR: 5511999999999 · ES: 34687073411",
+      );
       return;
     }
     setSubmitting(true);
