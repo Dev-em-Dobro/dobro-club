@@ -66,7 +66,7 @@ describe("syncMagicLinkToAC", () => {
   it("retry: falha nas duas tentativas ⇒ sent:false", async () => {
     const fetchFn = mockFetch(async () => ({ ok: false }));
     const r = await syncMagicLinkToAC("ana@x.com", LINK);
-    expect(r).toEqual({ sent: false, reason: "failed" });
+    expect(r).toEqual({ sent: false, reason: "failed:network" });
     expect(fetchFn).toHaveBeenCalledTimes(2);
   });
 
@@ -182,7 +182,7 @@ describe("tagContactByEmail (tag de check-in)", () => {
         email: "ana@x.com",
         firstName: "Ana",
         lastName: "Silva",
-        phone: "5511999998888",
+        phone: "+5511999998888",
       },
     });
 
@@ -194,6 +194,21 @@ describe("tagContactByEmail (tag de check-in)", () => {
     });
   });
 
+  it("422 na tag já aplicada conta como sucesso (contato já entrou na AC)", async () => {
+    const fetchFn = vi.fn(async (url: string) =>
+      String(url).endsWith("/api/3/contact/sync")
+        ? { ok: true, json: async () => ({ contact: { id: "42" } }) }
+        : {
+            ok: false,
+            status: 422,
+            text: async () => '{"errors":[{"title":"Tag is already applied"}]}',
+          },
+    );
+    vi.stubGlobal("fetch", fetchFn as unknown as typeof fetch);
+
+    const r = await tagContactByEmail("ana@x.com", TAG);
+    expect(r).toEqual({ sent: true });
+  });
   it("sem perfil: sync só com e-mail (compatível com chamadas antigas)", async () => {
     const fetchFn = vi.fn(async (url: string) =>
       String(url).endsWith("/api/3/contact/sync")

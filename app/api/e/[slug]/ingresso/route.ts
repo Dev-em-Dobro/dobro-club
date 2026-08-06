@@ -146,16 +146,18 @@ export async function POST(
 
   // Sinal de check-in no ActiveCampaign: tag que dispara a automação de quem
   // gerou o ingresso (só lançamento clássico — o ticket-only já retornou acima).
-  // Best-effort e fire-and-forget, mesmo padrão do e-mail: nunca bloqueia nem
-  // derruba a emissão. No-op quando AC_CHECKIN_TAG_ID/AC não estão configurados.
-  tagContactByEmail(lead.email, process.env.AC_CHECKIN_TAG_ID, {
-    name: lead.name,
-    phone: lead.phone,
-  })
-    .then((r) => {
-      if (!r.sent) console.warn("[ingresso] AC check-in tag não aplicada:", r.reason);
-    })
-    .catch((e) => console.error("[ingresso] AC check-in tag erro:", e));
+  // IMPORTANTE: await (não fire-and-forget). No Vercel a function congela ao
+  // responder; se a chamada for solta, o sync com a AC morre no meio e o lead
+  // nunca entra. A emissão já tem espera perceptível — ~200–800ms a mais ok.
+  try {
+    const r = await tagContactByEmail(lead.email, process.env.AC_CHECKIN_TAG_ID, {
+      name: lead.name,
+      phone: lead.phone,
+    });
+    if (!r.sent) console.warn("[ingresso] AC check-in tag não aplicada:", r.reason);
+  } catch (e) {
+    console.error("[ingresso] AC check-in tag erro:", e);
+  }
 
   // FR-005: o magic link é devolvido aqui para exibição na MESMA sessão.
   return NextResponse.json({
