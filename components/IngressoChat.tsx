@@ -12,13 +12,15 @@ import { useSearchParams } from "next/navigation";
 import { ingressoCopy } from "@/lib/copy/ingresso";
 import { sleep, typingDelay } from "@/lib/chat-typing";
 import { shrinkImage } from "@/lib/image-resize";
+import { isValidPhone, normalizePhone } from "@/lib/validate";
 
 const CLOUD = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
 const PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "";
 const DEFAULT_SLUG = process.env.NEXT_PUBLIC_EVENT_SLUG || "piloto";
 const DEFAULT_EVENT_NAME = "Semana do Zero ao Programador Contratado";
 const WHATSAPP_GROUP =
-  process.env.NEXT_PUBLIC_WHATSAPP_GROUP_URL || "https://chat.whatsapp.com/";
+  process.env.NEXT_PUBLIC_WHATSAPP_GROUP_URL ||
+  "https://sndflw.com/i/ACIUmQs30YNKJHD2r4Nf";
 
 // Silêncio tolerado numa etapa antes do Mestre cutucar. Preencher e-mail/telefone
 // (às vezes buscando o aparelho ou a foto) passa fácil de um minuto — cutucar cedo
@@ -27,9 +29,6 @@ const IDLE_NUDGE_MS = 180_000;
 const MAX_BYTES = 5 * 1024 * 1024; // 5MB (FR-015)
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"]; // FR-015
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-// Só dígitos; DDI+DD+número tem 12–13 dígitos (fixo/celular BR).
-const onlyDigits = (v: string) => v.replace(/\D/g, "");
-const isValidPhone = (v: string) => /^\d{12,13}$/.test(v);
 
 // Etapas do fluxo conversacional (roteiro do RPG).
 type Step =
@@ -319,22 +318,26 @@ export default function IngressoChat({
 
   /**
    * WhatsApp é o único canal com compartilhamento pré-preenchido pela web
-   * (`wa.me?text=`): abre a conversa com a mensagem e o link já escritos. O link
-   * leva ao gerador com `?ref=`, e o preview do WhatsApp mostra o ingresso —
-   * a `og:image` da página é montada a partir do `ref` (ver a page do gerador).
+   * (`api.whatsapp.com/send?text=`): abre a conversa com a mensagem e o link já
+   * escritos. Preferimos essa URL em vez de `wa.me/?text=` — a página intermediária
+   * do wa.me costuma corromper emoji (caractere de substituição). O link leva ao
+   * gerador com `?ref=`, e o preview do WhatsApp mostra o ingresso — a `og:image`
+   * da página é montada a partir do `ref` (ver a page do gerador).
    */
   function shareOnWhatsApp() {
     if (!result) return;
     const msg = `${shareText()}\n${result.ticket.shareUrl}`;
     window.open(
-      `https://wa.me/?text=${encodeURIComponent(msg)}`,
+      `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`,
       "_blank",
       "noopener",
     );
   }
 
   function shareText(): string {
-    return `Garanti meu ingresso pra ${event}! 🎫`;
+    // Sem emoji fora do BMP: a página "Partilhar no WhatsApp" (web) interpreta
+    // mal essas sequências UTF-8 e mostra interrogação no lugar do ticket.
+    return `Garanti meu ingresso pra ${event}!`;
   }
 
   /** A imagem como File, quando o navegador aceita compartilhar arquivos (mobile). */
@@ -449,7 +452,7 @@ export default function IngressoChat({
     }
 
     if (step === "askPhone") {
-      const digits = onlyDigits(value);
+      const digits = normalizePhone(value);
       if (!isValidPhone(digits)) {
         pushMsg({ from: "user", text: value });
         setInput("");
