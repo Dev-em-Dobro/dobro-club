@@ -21,8 +21,10 @@ describe("copy do Mestre — lançamento clássico", () => {
     expect(classico.greet.join(" ")).toContain("Semana do Zero ao Programador Contratado");
   });
 
-  it("cutuca quem parou com uma linha só (sem discurso)", () => {
-    expect(classico.idleNudge).toHaveLength(1);
+  it("explica o formato internacional do WhatsApp (não só BR 55)", () => {
+    expect(classico.askPhone.join(" ")).toMatch(/DDI/i);
+    expect(classico.askPhone.join(" ")).not.toMatch(/Formato: 55 \+/);
+    expect(classico.invalidPhone.join(" ")).toMatch(/34687073411/);
   });
 });
 

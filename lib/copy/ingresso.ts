@@ -52,7 +52,7 @@ export interface IngressoCopy {
 }
 
 const PHONE_FORMAT =
-  "Formato: 55 + DDD + número. Ex.: 5511999999999";
+  "Formato: DDI + DDD + número (só números). Ex. BR: 5511999999999 · ES: 34687073411";
 
 export function ingressoCopy({
   eventName,

@@ -148,7 +148,10 @@ export async function POST(
   // gerou o ingresso (só lançamento clássico — o ticket-only já retornou acima).
   // Best-effort e fire-and-forget, mesmo padrão do e-mail: nunca bloqueia nem
   // derruba a emissão. No-op quando AC_CHECKIN_TAG_ID/AC não estão configurados.
-  tagContactByEmail(lead.email, process.env.AC_CHECKIN_TAG_ID)
+  tagContactByEmail(lead.email, process.env.AC_CHECKIN_TAG_ID, {
+    name: lead.name,
+    phone: lead.phone,
+  })
     .then((r) => {
       if (!r.sent) console.warn("[ingresso] AC check-in tag não aplicada:", r.reason);
     })

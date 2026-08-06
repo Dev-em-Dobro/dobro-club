@@ -15,9 +15,12 @@ export function normalizePhone(raw: string): string {
   return raw.replace(/\D/g, "");
 }
 
-/** DDI + DDD + número (ex.: 5511999999999). 12–13 dígitos cobre fixo/celular BR. */
+/**
+ * Telefone internacional em E.164 (só dígitos, sem `+`): DDI + número nacional.
+ * 10–15 dígitos cobre BR (12–13), ES (11), PT (12), US (11) e a maioria dos DDIs.
+ */
 export function isValidPhone(phone: string): boolean {
-  return /^\d{12,13}$/.test(phone);
+  return /^\d{10,15}$/.test(phone);
 }
 
 export function validateLeadInput(body: unknown): ValidateResult {
