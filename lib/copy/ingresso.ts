@@ -54,11 +54,14 @@ export interface IngressoCopy {
 const PHONE_FORMAT =
   "Formato: DDI + DDD + número (só números). Ex. BR: 5511999999999 · ES: 34687073411";
 
+const FIRST_CLASS =
+  "dia 10/08 às 20h (horário de Brasília)";
+
 export function ingressoCopy({
   eventName,
   ticketOnly = false,
 }: CopyOptions): IngressoCopy {
-  // Fecho do lançamento clássico: a próxima aula e o grupo de WhatsApp. No evento
+  // Fecho do lançamento clássico: a primeira aula e o grupo de WhatsApp. No evento
   // pago não há aula a anunciar — o fecho é o próprio ingresso.
   const finish = ticketOnly
     ? [
@@ -66,24 +69,24 @@ export function ingressoCopy({
         "Compartilhe pra todo mundo saber que você vai estar lá 🎫",
       ]
     : [
-        "Maravilha! Te esperamos na primeira aula do evento, na próxima segunda-feira, 20h (horário de Brasília).",
+        `Maravilha! Te esperamos na primeira aula do evento, ${FIRST_CLASS}.`,
         "No dia, você receberá o link da aula com antecedência, no grupo de whatsapp.",
       ];
 
   const alreadyHasTicket = ticketOnly
     ? [
         "Vi que você já garantiu o seu ingresso para o evento. Não se preocupe, sua vaga já está garantida!",
-        "Aqui está ele de novo — é só baixar ou compartilhar 👇",
+        "Aqui está ele de novo: é só baixar ou compartilhar 👇",
       ]
     : [
         "Vi que você já garantiu o seu ingresso para o evento. Não se preocupe, sua vaga já está garantida!",
-        `Te esperamos na primeira aula do evento do Zero ao Programador Contratado, na próxima segunda-feira, 20h (horário de Brasília).`,
+        `Te esperamos na primeira aula do evento do Zero ao Programador Contratado, ${FIRST_CLASS}.`,
       ];
 
   return {
     greet: [
       `Opa! Seja bem-vindo(a) à ${eventName} 🎮`,
-      "Que bom te ver por aqui — vai ser um evento e tanto! ✨",
+      "Que bom te ver por aqui: vai ser um evento e tanto! ✨",
       "Pra garantir sua presença, vou gerar seu ingresso individual e personalizado. Só preciso de alguns dados rapidinho 🎫",
     ],
     askName: [
@@ -103,7 +106,7 @@ export function ingressoCopy({
       "Boa! Me envie uma foto quadrada (formato 1:1), com o seu rosto bem centralizado.",
     ],
     photoRejected: [
-      "Esse formato não rola aqui — vale JPEG, PNG ou WebP. Me manda outra ou seguimos com o avatar padrão 👇",
+      "Esse formato não rola aqui: vale JPEG, PNG ou WebP. Me manda outra ou seguimos com o avatar padrão 👇",
     ],
     photoTooBig: ["Essa foto passou de 5MB. Deixa comigo, vou ajustar ela 🛠️"],
     photoOptimized: ["Prontinho, ficou no tamanho certo ✨"],
@@ -111,7 +114,7 @@ export function ingressoCopy({
       "Não consegui deixar essa foto abaixo de 5MB 😕 Me manda outra ou seguimos com o avatar padrão 👇",
     ],
     photoFailed: [
-      "Não consegui enviar sua foto agora — seguimos com o avatar padrão 👍",
+      "Não consegui enviar sua foto agora: seguimos com o avatar padrão 👍",
     ],
     askEmail: [
       "Maravilha, seu ingresso já está sendo emitido…",
@@ -137,7 +140,7 @@ export function ingressoCopy({
     alreadyHasTicket,
     ticketProblem: ["Estamos verificando, vamos emitir seu ingresso novamente…"],
     reissuedWithoutPhoto: [
-      "Sua foto não carregou aqui — reemiti o ingresso com o avatar padrão 👍",
+      "Sua foto não carregou aqui: reemiti o ingresso com o avatar padrão 👍",
     ],
     finish,
     // Uma linha só: quem parou no meio não volta por causa de um discurso.

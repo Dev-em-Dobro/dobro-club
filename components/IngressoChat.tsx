@@ -317,26 +317,9 @@ export default function IngressoChat({
   }
 
   /**
-   * WhatsApp é o único canal com compartilhamento pré-preenchido pela web
-   * (`api.whatsapp.com/send?text=`): abre a conversa com a mensagem e o link já
-   * escritos. Preferimos essa URL em vez de `wa.me/?text=` — a página intermediária
-   * do wa.me costuma corromper emoji (caractere de substituição). O link leva ao
-   * gerador com `?ref=`, e o preview do WhatsApp mostra o ingresso — a `og:image`
-   * da página é montada a partir do `ref` (ver a page do gerador).
+   * Texto curto pra folha nativa de compartilhar / clipboard.
    */
-  function shareOnWhatsApp() {
-    if (!result) return;
-    const msg = `${shareText()}\n${result.ticket.shareUrl}`;
-    window.open(
-      `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`,
-      "_blank",
-      "noopener",
-    );
-  }
-
   function shareText(): string {
-    // Sem emoji fora do BMP: a página "Partilhar no WhatsApp" (web) interpreta
-    // mal essas sequências UTF-8 e mostra interrogação no lugar do ticket.
     return `Garanti meu ingresso pra ${event}!`;
   }
 
@@ -682,11 +665,7 @@ export default function IngressoChat({
           />
         );
 
-      // Fim do funil, em ordem de valor: a ação que fecha a participação (grupo
-      // de WhatsApp no clássico; compartilhar no pago), depois o convite que traz
-      // gente nova (`?ref=`), e por último baixar/compartilhar como secundárias.
-      // Instagram saiu como botão próprio: no celular a folha nativa de
-      // "Compartilhar" já entrega o ingresso ao app, e no desktop não há post.
+      // Fim do funil: grupo de WhatsApp (clássico), depois baixar/compartilhar.
       // O magic link não aparece aqui: ele chega por e-mail (e pelo onboarding do
       // ActiveCampaign), com `/recuperar-ingresso` como resgate.
       case "done":
@@ -697,9 +676,6 @@ export default function IngressoChat({
                 Entrar no grupo de WhatsApp 💬
               </a>
             )}
-            <button type="button" className="quick-btn" onClick={shareOnWhatsApp}>
-              CHAMAR A GALERA 💬
-            </button>
             <div className="chat-quick chat-quick--row">
               <button
                 type="button"
