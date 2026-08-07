@@ -5,9 +5,9 @@ const classico = ingressoCopy({ eventName: "Semana do Zero ao Programador Contra
 const pago = ingressoCopy({ eventName: "Imersão", ticketOnly: true });
 
 describe("copy do Mestre — lançamento clássico", () => {
-  it("anuncia a primeira aula na segunda-feira, 20h, e o grupo de WhatsApp", () => {
+  it("anuncia a primeira aula em 10/08 às 20h e o grupo de WhatsApp", () => {
     const fecho = classico.finish.join(" ");
-    expect(fecho).toMatch(/próxima segunda-feira, 20h/i);
+    expect(fecho).toMatch(/10\/08 às 20h/i);
     expect(fecho).toMatch(/grupo de whatsapp/i);
   });
 
@@ -15,10 +15,23 @@ describe("copy do Mestre — lançamento clássico", () => {
     expect(classico.alreadyHasTicket.join(" ")).toMatch(
       /já garantiu o seu ingresso.*vaga já está garantida/is,
     );
+    expect(classico.alreadyHasTicket.join(" ")).toMatch(/10\/08 às 20h/i);
   });
 
   it("usa o nome do evento na saudação", () => {
     expect(classico.greet.join(" ")).toContain("Semana do Zero ao Programador Contratado");
+  });
+
+  it("não usa travessão (—) nos textos do chat", () => {
+    const all = [
+      ...classico.greet,
+      ...classico.finish,
+      ...classico.alreadyHasTicket,
+      ...classico.photoRejected,
+      ...classico.photoFailed,
+      ...classico.reissuedWithoutPhoto,
+    ].join(" ");
+    expect(all).not.toContain("—");
   });
 
   it("explica o formato internacional do WhatsApp (não só BR 55)", () => {
